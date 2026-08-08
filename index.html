@@ -144,7 +144,7 @@ body{
   overflow:hidden;
 }
 .stop.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.stop.done{background:transparent;border-color:var(--line-soft)}
+.stop.done,.stop.skipped{background:transparent;border-color:var(--line-soft)}
 
 .leg{
   display:flex;gap:9px;align-items:flex-start;
@@ -165,6 +165,7 @@ body{
 }
 .stop.current .seq{background:var(--accent);color:var(--accent-ink)}
 .stop.done .seq{background:transparent;border:1px solid var(--good);color:var(--good)}
+.stop.skipped .seq{background:transparent;border:1px dashed var(--dim);color:var(--dim)}
 
 .addr{flex:1;min-width:0}
 .street{font-size:15px;color:var(--muted);letter-spacing:.01em}
@@ -173,8 +174,8 @@ body{
   font-size:33px;font-weight:800;letter-spacing:-.035em;line-height:1.05;
   display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;
 }
-.stop.done .nr{font-size:22px;color:var(--dim)}
-.stop.done .street{font-size:13px}
+.stop.done .nr,.stop.skipped .nr{font-size:22px;color:var(--dim)}
+.stop.done .street,.stop.skipped .street{font-size:13px}
 .badge{
   font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;padding:3px 7px;border-radius:5px;
@@ -192,7 +193,19 @@ body{
 .stop.done .tick{background:var(--good);border-color:var(--good);color:var(--good-ink)}
 
 .body{padding:0 13px 13px;display:flex;flex-direction:column;gap:11px}
-.stop.done .body{display:none}
+.stop.done .body,.stop.skipped .body{display:none}
+
+/* The dated snapshot. Deliberately quiet — it is a hint, never an instruction. */
+.usual{display:flex;flex-direction:column;gap:5px}
+.usual .lbl{
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);
+}
+.usual .papers{opacity:.72}
+.usual-warn{
+  font-size:13px;line-height:1.45;color:var(--muted);
+  border:1px dashed var(--line);border-radius:9px;padding:9px 11px;margin-top:9px;
+}
 
 .door{
   font-size:15.5px;line-height:1.5;
@@ -249,8 +262,9 @@ body{
 }
 .apt.on .abox{background:var(--good);border-color:var(--good);color:var(--good-ink)}
 .apt.on .id{color:var(--dim);text-decoration:line-through}
-.apt.empty{opacity:.4}
-.apt.empty .abox{display:none}
+.apt.unusual{opacity:.5}          /* took nothing when this was written down */
+.apt.unusual.on{opacity:1}
+.apt.unusual .abox{border-style:dashed}
 
 /* my notes */
 .mine{display:flex;flex-direction:column;gap:6px}
@@ -443,6 +457,20 @@ ul.plain b{color:var(--text)}
    stop's card shows the previous stop's `next` as "getting here".
    ========================================================================= */
 
+/* Two kinds of data live in the delivery book, and they must not be confused:
+
+   STABLE   the order of the addresses, how you drive between them, which
+            stairwell, where the mailbox is, which floor a flat sits on.
+            Buildings don't move. This app owns that, and it's the reason
+            the app exists at all.
+
+   VOLATILE which flats take which papers, and how many. Posti rebuilds this
+            every night from live subscriptions — people pause for holidays,
+            start, cancel. Only the Pomo knows today's answer.
+
+   Paper data below is therefore a DATED SNAPSHOT, shown as "usually" and
+   never as instruction. The Pomo wins every time they disagree. */
+
 const SEED = {
   area: "Katinen B",
   city: "Hämeenlinna",
@@ -450,6 +478,7 @@ const SEED = {
   depot: "Lautatarhankatu 5",
   shiftStart: "00:30",
   serviceLevel: "06:30",
+  snapshot: "7 Aug 2026",
   routes: [
     {
       id: "1096016", from: "00:50", to: "01:43",
@@ -549,7 +578,7 @@ let PREFS = load(K.prefs, { mode:"night", dim:0, onlyPapers:true });
 let DAY   = load(K.day, null);
 
 if(!DAY || DAY.date !== todayKey()){
-  DAY = { date:todayKey(), routeId:DATA.routes[0].id, startedAt:null, lastAt:null, done:{}, apt:{}, history:[] };
+  DAY = { date:todayKey(), routeId:DATA.routes[0].id, startedAt:null, lastAt:null, done:{}, skip:{}, apt:{}, history:[] };
   save(K.day, DAY);
 }
 if(!DATA.routes.some(r => r.id === DAY.routeId)) DAY.routeId = DATA.routes[0].id;
@@ -628,16 +657,21 @@ function mapsWholeRoute(r){
    4. PROGRESS + PACE
    ========================================================================= */
 
+/* A stop is settled either by delivering it or by the Pomo showing nothing for
+   it tonight — both take it off the list, but they aren't the same event. */
+function isSettled(r, s){ const id = sid(r, s); return !!(DAY.done[id] || DAY.skip[id]); }
+
 function firstUndoneIndex(r){
-  for(let i = 0; i < r.stops.length; i++) if(!DAY.done[sid(r, r.stops[i])]) return i;
+  for(let i = 0; i < r.stops.length; i++) if(!isSettled(r, r.stops[i])) return i;
   return -1;
 }
 
 function progress(){
   const r = route();
   const total = r.stops.length;
-  const done  = r.stops.filter(s => DAY.done[sid(r, s)]).length;
-  return { r, total, done, pct: total ? Math.round(done/total*100) : 0 };
+  const done  = r.stops.filter(s => isSettled(r, s)).length;
+  const skipped = r.stops.filter(s => DAY.skip[sid(r, s)]).length;
+  return { r, total, done, skipped, pct: total ? Math.round(done/total*100) : 0 };
 }
 
 function pace(){
@@ -665,11 +699,9 @@ function pace(){
   };
 }
 
-/* Papers still in the bag for this route, from stops not yet ticked. */
-function papersLeft(r){
-  return sumPapers(r.stops.filter(s => !DAY.done[sid(r, s)]).map(s => s.papers));
-}
-/* Difference between the Pomo's route totals and what's been entered. */
+/* Transcription check only — how much of the delivery book has been typed in,
+   measured against the snapshot's own route totals. NOT a live bag count:
+   tonight's real numbers are on the Pomo. */
 function unaccounted(r){
   const entered = sumPapers(r.stops.map(s => s.papers));
   const out = {};
@@ -694,8 +726,8 @@ function renderHeader(){
   chips.push('<span class="chip">' + r.from + "–" + r.to + "</span>");
   chips.push('<span class="chip' + (total && done === total ? " ok" : "") + '">' + done + "/" + total + " stops</span>");
 
-  const left = countPapers(papersLeft(r));
-  if(left) chips.push('<span class="chip accent">' + left + " papers left</span>");
+  const skipped = progress().skipped;
+  if(skipped) chips.push('<span class="chip">' + skipped + " nothing tonight</span>");
 
   if(p.state === "ok" || p.state === "warn" || p.state === "late"){
     const label = p.deltaMin <= 0
@@ -766,27 +798,19 @@ function renderRun(){
       "estimate will look far too good. Add the remaining pages under <b>Data</b>.</div>"
     );
   }
-  const un = unaccounted(r);
-  if(Object.keys(un).length){
-    parts.push(
-      '<div class="note"><b>' + countPapers(un) + " papers not yet placed:</b> " +
-      esc(papersLine(un)) + ". The Pomo says the route carries " + esc(papersLine(r.totals)) +
-      "; the stops entered here account for the rest.</div>"
-    );
-  }
-
   r.stops.forEach((s, i) => {
     const id = sid(r, s);
     const isDone = !!DAY.done[id];
+    const isSkip = !!DAY.skip[id];
     const isCur  = i === cur;
     const prev   = i > 0 ? r.stops[i-1] : null;
-    const cls    = "stop" + (isDone ? " done" : "") + (isCur ? " current" : "");
+    const cls    = "stop" + (isDone ? " done" : "") + (isSkip ? " skipped" : "") + (isCur ? " current" : "");
     const b = [];
 
     b.push('<article class="' + cls + '" id="stop-' + esc(id) + '">');
 
     // getting here — the previous stop's driving instruction
-    if(prev && prev.next && !isDone){
+    if(prev && prev.next && !isDone && !isSkip){
       b.push('<div class="leg"><span class="ico">↳</span><span>' + esc(prev.next) + "</span></div>");
     }
 
@@ -796,7 +820,8 @@ function renderRun(){
     b.push('<div class="street">' + esc(s.street) + "</div>");
     b.push('<div class="nr">' + esc(s.nr));
     if(s.tag) b.push('<span class="badge">' + esc(s.tag) + "</span>");
-    if(isCur && !s.tag) b.push('<span class="badge">Next</span>');
+    if(isSkip) b.push('<span class="badge ghost">Nothing tonight</span>');
+    else if(isCur && !s.tag) b.push('<span class="badge">Next</span>');
     b.push("</div></div>");
     b.push('<button class="tick" data-tick="' + esc(id) + '" aria-label="Mark ' +
            esc(s.street + " " + s.nr) + ' delivered">✓</button>');
@@ -804,14 +829,17 @@ function renderRun(){
 
     b.push('<div class="body">');
 
-    if(countPapers(s.papers)){
-      b.push('<div class="papers">' + Object.entries(s.papers)
-        .filter(([,v]) => v > 0)
-        .map(([k,v]) => '<span class="p ' + k.toLowerCase() + '">' + esc(k) + " " + v + "</span>")
-        .join("") + "</div>");
-    }
-
     if(s.at) b.push('<div class="door"><b>At the door</b>' + esc(s.at) + "</div>");
+
+    // The snapshot, kept deliberately quiet. Tonight's papers are on the Pomo;
+    // this is only here so an unfamiliar building isn't a total surprise.
+    if(countPapers(s.papers)){
+      b.push('<div class="usual"><span class="lbl">Usually · ' + esc(DATA.snapshot || "old snapshot") + '</span>' +
+        '<span class="papers">' + Object.entries(s.papers)
+          .filter(([,v]) => v > 0)
+          .map(([k,v]) => '<span class="p ' + k.toLowerCase() + '">' + esc(k) + " " + v + "</span>")
+          .join("") + "</span></div>");
+    }
     if(s.flag) b.push('<div class="note warn">' + esc(s.flag) + "</div>");
 
     if(s.apts && s.apts.length) b.push(renderApts(r, s, id));
@@ -826,6 +854,11 @@ function renderRun(){
       '<a class="pri" href="' + esc(mapsDir(addr)) + '" target="_blank" rel="noopener">Navigate</a>' +
       '<a href="' + esc(mapsSearch(addr)) + '" target="_blank" rel="noopener">Map / Street View</a>' +
       "</div>");
+
+    if(!s.tag){
+      b.push('<div class="btn-row"><button class="btn ghost" data-skip="' + esc(id) +
+             '">Pomo shows nothing here tonight — skip</button></div>');
+    }
 
     const t = TIMES[id];
     if(t && t.length){
@@ -854,11 +887,14 @@ function renderApts(r, s, id){
 
   const b = [];
   b.push('<details class="apts"' + (withP ? " open" : "") + ">");
-  b.push("<summary><span>Flats — <b>" + withP + " of " + total + "</b> get a paper" +
-         (withP ? " · " + doneN + "/" + withP + " done" : "") + "</span></summary>");
+  b.push("<summary><span>Flats — <b>" + total + "</b> doors, " + withP + " usually take one" +
+         (withP ? " · " + doneN + "/" + withP + " ticked" : "") + "</span></summary>");
   b.push('<div class="apt-wrap">');
+  b.push('<div class="usual-warn">Which flats get a paper is rebuilt by Posti every night. ' +
+         "Read tonight's list off the Pomo — the codes below are how it looked on " +
+         esc(DATA.snapshot || "an earlier run") + ", useful for knowing which floors you normally climb.</div>");
   b.push('<div class="btn-row" style="margin-top:8px"><button class="btn ghost" data-toggle-only="1">' +
-         (only ? "Show all " + total + " flats" : "Show only the " + withP + " with papers") + "</button></div>");
+         (only ? "Show all " + total + " doors" : "Show only the " + withP + " usual ones") + "</button></div>");
 
   for(const f of s.apts){
     const list = only ? f.list.filter(x => x[1].length) : f.list;
@@ -866,12 +902,14 @@ function renderApts(r, s, id){
     b.push('<div class="floor">' + esc(f.f) + "</div>");
     for(const [aid, papers] of list){
       const key = id + "|" + aid;
-      const has = papers.length > 0;
-      const on = has && DAY.apt[key];
-      b.push('<div class="apt' + (has ? "" : " empty") + (on ? " on" : "") + '">');
+      const usual = papers.length > 0;
+      const on = !!DAY.apt[key];
+      // Every door is tickable. Tonight's list comes from the Pomo, and it can
+      // name a flat that took nothing when this was written down.
+      b.push('<div class="apt' + (usual ? "" : " unusual") + (on ? " on" : "") + '">');
       b.push('<span class="id">' + esc(aid) + "</span>");
       b.push('<span class="pp">' + papers.map(p => '<span class="p ' + p.toLowerCase() + '">' + esc(p) + "</span>").join("") + "</span>");
-      if(has) b.push('<button class="abox" data-apt="' + esc(key) + '" aria-label="Mark flat ' + esc(aid) + ' delivered">✓</button>');
+      b.push('<button class="abox" data-apt="' + esc(key) + '" aria-label="Mark flat ' + esc(aid) + ' delivered">✓</button>');
       b.push("</div>");
     }
   }
@@ -927,8 +965,9 @@ function renderRoutes(){
 
 function renderDayStats(){
   const r = route();
-  const { total, done } = progress();
+  const { total, done, skipped } = progress();
   const p = pace();
+  p.skipped = skipped;
   const rows = [];
   rows.push(kv("Route", r.id));
   rows.push(kv("Window", r.from + "–" + r.to + "  (" + Math.round(p.windowMin) + " min)"));
@@ -939,8 +978,7 @@ function renderDayStats(){
     rows.push(kv("Projected finish", fmtClock(p.finish) + "  (" + fmtSigned(p.deltaMin) + ")"));
     rows.push(kv("Time left at this pace", fmtDur(p.remainMin*60)));
   }
-  const left = papersLeft(r);
-  rows.push(kv("Papers still in the bag", countPapers(left) ? papersLine(left) : "none"));
+  if(p.skipped) rows.push(kv("Nothing to deliver", p.skipped + " stop" + (p.skipped>1?"s":"")));
   return rows.join("");
 }
 function kv(k, v){
@@ -955,9 +993,17 @@ function renderData(){
   const r = route();
   const parts = [];
 
-  parts.push('<div class="note"><b>Adding the rest of the book.</b> Sit down at home with the Pomo on ' +
-    "<b>Preview</b>. One stop per page here, in the same order the Pomo lists them — never re-order them, " +
-    "Posti has already sequenced the round.</div>");
+  parts.push('<div class="note"><b>Type in the addresses, not the papers.</b> The order of the stops, ' +
+    "the turns between them and where the mailbox is stay the same week after week — that is what this app is for. " +
+    "Which flats take which paper is rebuilt by Posti every night, so leave that to the Pomo. " +
+    "Never re-order the stops; Posti has already sequenced the round.</div>");
+
+  const un = unaccounted(r);
+  if(Object.keys(un).length){
+    parts.push('<div class="note warn"><b>' + countPapers(un) + " papers had no address</b> on the " +
+      esc(DATA.snapshot || "reference") + " snapshot (" + esc(papersLine(un)) + " of " + esc(papersLine(r.totals)) +
+      "). That is a rough measure of how much of the book is still untyped — not a count of anything you carry tonight.</div>");
+  }
 
   parts.push(
     '<div class="card"><h3>Add a stop<span class="sub">to ' + esc(r.id) + "</span></h3>" +
@@ -1034,6 +1080,17 @@ function parseApts(str){
 
 function renderHelp(){
   $("#pane-help").innerHTML = [
+    '<div class="card"><h3>What this knows, and what only the Pomo knows</h3>',
+    '<p style="margin:0;color:var(--muted);font-size:14.5px;line-height:1.55">',
+      "Two different things live in the delivery book, and they behave nothing alike.</p>",
+    '<ul class="plain">',
+      "<li><b>The Pomo owns tonight’s papers.</b> Which flat takes which title, and how many, is rebuilt every night from live subscriptions — people pause for a holiday, start, cancel. A2 taking HS and HASA yesterday says nothing about A2 tonight. <b>Read it off the Pomo, every run.</b></li>",
+      "<li><b>This app owns the way round.</b> The order of the stops, the turns between them, which archway, which stairwell, where the metal box is bolted, which floor A9 is on, the code on the gate. None of that changes from one night to the next, and none of it is on the Pomo.</li>",
+      "<li>Paper codes shown on a stop are marked <b>Usually</b> and carry the date they were copied. They are there so an unfamiliar building isn’t a complete surprise — which floors you normally climb, roughly how heavy the stairwell is. <b>Where they disagree with the Pomo, the Pomo is right.</b></li>",
+      "<li>If the Pomo lists nothing for an address tonight, hit <b>Pomo shows nothing here tonight — skip</b>. The stop drops off the list and gets counted separately, so a light night doesn’t flatter your times.</li>",
+      "<li>Any door in a flat list can be ticked, including ones greyed out — tonight’s list can name a flat that took nothing when this was written down.</li>",
+    "</ul></div>",
+
     '<div class="card"><h3>Getting quick on a round you don’t know</h3>',
     '<ol class="steps">',
       "<li><b>Drive it once in daylight, unpaid.</b> One Sunday afternoon, 40 minutes. Nothing you do at 01:00 buys back as much time as seeing the courtyards lit.</li>",
@@ -1114,6 +1171,22 @@ function markStop(id, on){
   if(on) scrollToCurrent();
 }
 
+/* The Pomo shows nothing for this address tonight. Not a delivery, but it does
+   take the stop off the list — and it's worth counting separately, because a
+   run with six empty stops isn't a fast run, it's a light one. */
+function skipStop(id){
+  if(!DAY.startedAt){
+    DAY.startedAt = new Date().toISOString();
+    DAY.lastAt = DAY.startedAt;
+  }
+  DAY.skip[id] = Date.now();
+  DAY.lastAt = new Date().toISOString();
+  DAY.history.push({ id, type:"skip" });
+  save(K.day, DAY);
+  renderAll();
+  scrollToCurrent();
+}
+
 function scrollToCurrent(){
   const r = route(), i = firstUndoneIndex(r);
   if(i < 0) return;
@@ -1124,8 +1197,14 @@ function scrollToCurrent(){
 function undoLast(){
   const last = DAY.history.pop();
   if(!last) return;
-  save(K.day, DAY);
-  markStop(last.id, false);
+  if(last.type === "skip"){
+    delete DAY.skip[last.id];
+    save(K.day, DAY);
+    renderAll();
+  }else{
+    save(K.day, DAY);
+    markStop(last.id, false);
+  }
   toast("Put back");
 }
 
@@ -1141,13 +1220,21 @@ function setPane(name){
 
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-tick],[data-apt],[data-route],[data-pane],[data-mode-toggle]," +
-    "[data-clear-day],[data-add-stop],[data-del-stop],[data-copy-json],[data-import-json],[data-toggle-only]");
+    "[data-clear-day],[data-add-stop],[data-del-stop],[data-copy-json],[data-import-json]," +
+    "[data-toggle-only],[data-skip]");
   if(!t) return;
   const d = t.dataset;
 
   if(d.pane){ setPane(d.pane); return; }
 
-  if(d.tick){ markStop(d.tick, !DAY.done[d.tick]); return; }
+  if(d.skip){ skipStop(d.skip); return; }
+
+  if(d.tick){
+    // Ticking a skipped stop after the fact turns it into a real delivery.
+    if(DAY.skip[d.tick]) delete DAY.skip[d.tick];
+    markStop(d.tick, !DAY.done[d.tick]);
+    return;
+  }
 
   if(d.apt){
     DAY.apt[d.apt] ? delete DAY.apt[d.apt] : DAY.apt[d.apt] = 1;
@@ -1172,7 +1259,7 @@ document.addEventListener("click", e => {
 
   if(d.clearDay !== undefined){
     if(!confirm("Clear tonight's ticks for every route? Your notes and timings stay.")) return;
-    DAY = { date:todayKey(), routeId:DAY.routeId, startedAt:null, lastAt:null, done:{}, apt:{}, history:[] };
+    DAY = { date:todayKey(), routeId:DAY.routeId, startedAt:null, lastAt:null, done:{}, skip:{}, apt:{}, history:[] };
     save(K.day, DAY); renderAll(); toast("Cleared"); return;
   }
 
@@ -1285,7 +1372,7 @@ setInterval(renderHeader, 15000);
 // A date rollover mid-session should hand back a clean sheet.
 setInterval(() => {
   if(DAY.date !== todayKey()){
-    DAY = { date:todayKey(), routeId:DAY.routeId, startedAt:null, lastAt:null, done:{}, apt:{}, history:[] };
+    DAY = { date:todayKey(), routeId:DAY.routeId, startedAt:null, lastAt:null, done:{}, skip:{}, apt:{}, history:[] };
     save(K.day, DAY); renderAll();
   }
 }, 60000);

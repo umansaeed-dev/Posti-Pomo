@@ -4,11 +4,31 @@ An offline companion for the Posti early-morning round in Katinen B, Hämeenlinn
 (routes 1096016–1096020, depot Lautatarhankatu 5).
 
 The Pomo device has the delivery book but no map. This is the missing half: the
-same stops in the same order, with one-tap navigation, the flats that actually
-take a paper, and a place to write down what you learn at each door.
+same stops in the same order, with one-tap navigation and a place to write down
+what you learn at each door.
 
 **`index.html` is the whole app.** One file, no build step, no server, no
 network. Open it and it works.
+
+## The one rule
+
+Two kinds of information live in that delivery book, and they behave nothing
+alike:
+
+| | Changes | Source of truth |
+|---|---|---|
+| Stop order, the turns between stops, which archway, which stairwell, where the mailbox is bolted, which floor a flat is on, gate codes | Basically never — buildings don't move | **This app** |
+| Which flats take which paper, and how many | **Every night** — Posti rebuilds it from live subscriptions; people pause for holidays, start, cancel | **The Pomo, always** |
+
+Paper codes in this app are labelled **Usually** and stamped with the date they
+were copied. They are a hint about which floors you normally climb, not an
+instruction. **Where they disagree with the Pomo, the Pomo is right.**
+
+If the Pomo lists nothing for an address tonight, tap *Pomo shows nothing here
+tonight — skip*. The stop drops off the list and is counted separately, so a
+light night doesn't flatter your times. Any door in a flat list can be ticked,
+including greyed-out ones — tonight's list can name a flat that took nothing
+when this was written down.
 
 ## Put it on your phone
 
@@ -22,13 +42,12 @@ network. Open it and it works.
 ## What it does
 
 - **Run** — the stops in book order. The current stop is expanded; the ones you
-  have done collapse out of the way. Each card shows how to drive there from the
-  last stop, where the mailbox is, which papers it takes, and which flats to
-  climb to. One big **Delivered** button under your thumb, and an undo next to it.
-- **Pace** — projected finish against the route's time window, so you can tell
-  at stop 4 whether you are going to make it.
-- **Papers left** — what should still be in the bag. Check it against the bundle
-  before you drive off.
+  have settled collapse out of the way. Each card shows how to drive there from
+  the last stop, where the mailbox is, and the flat roster with floors. One big
+  **Delivered** button under your thumb, and an undo next to it.
+- **Pace** — projected finish against the length of the route's time window, so
+  you can tell at stop 4 whether you are going to make it. Starting late doesn't
+  make it panic.
 - **Routes** — switch between the five routes, amber night-vision mode, and a
   brightness dimmer for 3am eyes.
 - **Data** — add the rest of the delivery book yourself, and back it up.
@@ -41,12 +60,13 @@ per-stop timings are permanent** — they are the point of the whole thing.
 ## What is actually in it
 
 Route **1096016** is entered as far as the photos went: page **1 of 4**, six
-stops, Lautatarhankatu 5 through Wähäjärvenkatu 3. Routes 1096017–1096020 are
-empty shells with their time windows.
+stops, Lautatarhankatu 5 through Wähäjärvenkatu 3, from the **7 Aug 2026**
+snapshot. Routes 1096017–1096020 are empty shells with their time windows.
 
-The app is honest about this — it shows how many papers the Pomo says the route
-carries versus how many the entered stops account for, so you can see exactly
-how much book is still missing.
+The app is honest about this — under **Data** it shows how many papers that
+snapshot's route total accounts for versus how many have an address, which is a
+rough measure of how much book is still untyped. It is a transcription check,
+not a count of anything you carry tonight.
 
 Two gaps worth closing, both flagged in the app:
 
@@ -58,6 +78,10 @@ Two gaps worth closing, both flagged in the app:
 
 Sit down at home with the Pomo on **Preview** — not in the car at 01:00. Under
 **Data**, add one stop per address in the same order the Pomo lists them.
+
+Type in **the addresses, the turns and the mailbox notes**. Those are worth
+typing once and keep paying out. Papers are optional and go stale by the next
+night, so don't spend time on them.
 
 Reading the Pomo's Preview screen: the highlighted box holds the **house number**
 and the **at-the-door** instruction; the text *underneath* the box is the
@@ -72,8 +96,9 @@ Papers go in as `HS 4, HASA 5, VKO 1`. Flats go in one line per floor:
 2nd floor: A8 HS+HASA, A7 -, A6 -, A5 HS, A4 -
 ```
 
-A dash means that flat gets nothing. By default the app hides those, so a
-building with 18 flats shows you the 7 doors that matter.
+A dash means that flat usually gets nothing. By default the app hides those, so
+a building with 18 flats shows the 7 doors you normally climb to — but every
+door stays tickable, because tonight's list is the Pomo's, not this one's.
 
 ## Backing it up
 
