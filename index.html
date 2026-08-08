@@ -1236,7 +1236,78 @@ const SEED = {
           next:"", papers:{ HASA:1 }, apts:[] }
       ]
     },
-    { id:"1096020", from:"05:00", to:"06:03", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] }
+    {
+      id: "1096020", from: "05:00", to: "06:03",
+      pagesTotal: 7, pagesEntered: 7,
+      // Reconciled: the stops below account for exactly HS 7 and HASA 30.
+      totals: { HS:7, HASA:30 },
+      // The shortest round of the five and the most uniform: a handful of big
+      // paired blocks, each with six stairwells, each with its own lock type.
+      // The lock is worth more than the house number here — one glance at the
+      // box tells you which building you are standing in.
+      stops: [
+        { k:"e1", street:"Lautatarhankatu", nr:"5", tag:"START",
+          at:"Posti yard. Last round of the night — this one starts where 1096019 finished.",
+          next:"Route 19 ⇒ a bit forward, 6 blocks of flats on the right.",
+          papers:{}, apts:[] },
+
+        /* ---- pages 1–2/7 --------------------------------------------------- */
+        { k:"e2", street:"Honkalankatu", nr:"2",
+          at:"GREEN SENTO boxes on every stairwell. Six stairwells, A to F — A carries most of it.",
+          next:"Right on Viipurintie, right on Honkalankatu, apartment building on the left.",
+          papers:{ HS:1, HASA:7 },
+          flag:"Flat E13 is labelled HONKALANKUJA 2 — kuja, not katu — while E14–E18 are Honkalankatu 2. Same stairwell, one visit.",
+          apts:[] },
+
+        { k:"e3", street:"Honkalankatu", nr:"1",
+          at:"WHITE SENTO — that is how you tell it from number 2 across the road.",
+          next:"Continue on Honkalankatu.",
+          papers:{ HS:2, HASA:2 },
+          flag:"Flat B23 is not in the stairwell. It is BEHIND the house — mailbox at the door.",
+          apts:[] },
+
+        /* ---- page 3/7 ------------------------------------------------------ */
+        { k:"e4", street:"Honkalankatu", nr:"3",
+          at:"Use the NEW KEY with the GREEN MARK — the number stamped on it is in the Pomo, and in My note if you put it there.",
+          next:"Turn left on Tyllilänkatu.",
+          papers:{ HASA:6 },
+          flag:"One paper total covers two addresses: stairwells A and B are Honkalankatu 3, C and D are HONKALANKATU 5. Flat numbers run straight through A1 to D36. One complex, one visit.",
+          apts:[] },
+
+        /* ---- pages 4–5/7 --------------------------------------------------- */
+        { k:"e5", street:"Tyllilänkatu", nr:"1",
+          at:"iLOQ readers. Six stairwells, A to F, flats A1 through F59.",
+          next:"",
+          papers:{ HS:2, HASA:8 },
+          flag:"The book prints a second paper total partway through, at stairwell D, under a heading I could not read in the photographs. Entered as one building because Tyllilänkatu 5 is laid out the same way — A to F under a single heading — and the flat numbers run straight through. Worth a glance on the road.",
+          apts:[] },
+
+        { k:"e6", street:"Tyllilänkatu", nr:"3",
+          at:"NEW KEY, GREEN MARK. Six stairwells, A to F. Usually almost empty — one paper in the whole building.",
+          next:"",
+          papers:{ HASA:1 },
+          flag:"Same as number 1: a second paper total appears at stairwell D under a heading I could not read. Treated as one building.",
+          apts:[] },
+
+        /* ---- page 6/7 ------------------------------------------------------ */
+        { k:"e7", street:"Tyllilänkatu", nr:"5",
+          at:"SENTO, no marking, P1. Six stairwells, A to F — and the flat numbers restart in each one (A1–A6, B1–B9, C1–C9 …), unlike the neighbours.",
+          next:"Continue on Tyllilänkatu, right on Heikkilänkatu, drive to the end of the road.",
+          papers:{ HASA:1 }, apts:[] },
+
+        /* ---- page 7/7 ------------------------------------------------------ */
+        { k:"e8", street:"Heikkilänkatu", nr:"4",
+          at:"SENTO, no marking. Two stairwells: A is the big one, 28 flats, and B has 27.",
+          next:"Back and to the left.",
+          papers:{ HS:2, HASA:5 }, apts:[] },
+
+        { k:"e9", street:"Heikkilänkatu", nr:"9", at:"", next:"", papers:{}, apts:[] },
+        { k:"e10", street:"Heikkilänkatu", nr:"7", at:"", next:"", papers:{}, apts:[] },
+        { k:"e11", street:"Heikkilänkatu", nr:"1", tag:"LAST",
+          at:"The Pomo says “The end.” after this one. Round finished, night finished.",
+          next:"", papers:{}, apts:[] }
+      ]
+    }
   ]
 };
 

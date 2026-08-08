@@ -233,6 +233,32 @@ console.log("\ncore, normal origin");
     (await p.locator("#stop-1096019\\:d20 .note.warn").innerText()).includes("KATISTENTIE 107"));
   await t("Viipurintie 36's second box group is flagged", async () =>
     (await p.locator("#stop-1096019\\:d26 .note.warn").innerText()).includes("TWO separate box groups"));
+  await t("route 1096020 is complete and reconciled", async () => {
+    await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+    await p.click('[data-route="1096020"]'); await p.waitForTimeout(400);
+    const want = ["Lautatarhankatu 5","Honkalankatu 2","Honkalankatu 1","Honkalankatu 3",
+      "Tyllilänkatu 1","Tyllilänkatu 3","Tyllilänkatu 5","Heikkilänkatu 4",
+      "Heikkilänkatu 9","Heikkilänkatu 7","Heikkilänkatu 1"];
+    const got = await p.locator(".stop .addr").evaluateAll(els =>
+      els.map(e => e.querySelector(".street").textContent.trim() + " " +
+                   e.querySelector(".nr").childNodes[0].textContent.trim()));
+    await p.click('[data-pane="data"]'); await p.waitForTimeout(300);
+    const txt = await p.locator("#pane-data").innerText();
+    await p.click('[data-pane="run"]'); await p.waitForTimeout(200);
+    return JSON.stringify(got) === JSON.stringify(want) && !txt.includes("had no address");
+  });
+  await t("every route in the book is now entered", async () => {
+    for(const rid of ["1096016","1096017","1096018","1096019","1096020"]){
+      await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+      await p.click(`[data-route="${rid}"]`); await p.waitForTimeout(300);
+      if((await p.locator(".stop").count()) === 0) return false;
+      if((await p.locator("#pane-run").innerText()).includes("of 7 entered")) return false;
+    }
+    return true;
+  });
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+  await p.click('[data-route="1096019"]'); await p.waitForTimeout(400);
+
   await t("the longest route still covers every stop on the map", async () =>
     await everyStopCovered("a.wr-g", addrsFromGoogle));
   await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
