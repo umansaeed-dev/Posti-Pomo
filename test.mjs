@@ -43,17 +43,32 @@ console.log("\ncore, normal origin");
   await p.goto(BASE + "/index.html");
   await p.waitForTimeout(400);
 
-  await t("six stops render", async () => (await p.locator(".stop").count()) === 6);
+  await t("all 13 stops render", async () => (await p.locator(".stop").count()) === 13);
   await t("first stop is current", async () =>
     (await p.locator(".stop").first().getAttribute("class")).includes("current"));
+  await t("route runs in Pomo order", async () => {
+    const want = ["Lautatarhankatu 5", "Talaskuja 1", "Talaskuja 3", "Wähäjärvenkatu 6",
+      "Wähäjärvenkatu 5", "Wähäjärvenkatu 3", "Wähäjärvenkatu 1", "Salamanteri 3",
+      "Korentokatu 6", "Pikkujärventie 6", "Aittatie 7", "Aittatie 5", "Aittatie 1"];
+    const got = await p.locator(".stop .addr").evaluateAll(els =>
+      els.map(e => e.querySelector(".street").textContent.trim() + " " +
+                   e.querySelector(".nr").childNodes[0].textContent.trim()));
+    return JSON.stringify(got) === JSON.stringify(want);
+  });
   await t("no false storage warning", async () =>
     !(await p.locator("#pane-run").innerText()).includes("cannot save anything"));
-  await t("partial-book warning", async () =>
-    (await p.locator(".note.warn").first().innerText()).includes("Page 1 of 4"));
+  await t("book is complete, no partial-page warning", async () =>
+    !(await p.locator("#pane-run").innerText()).includes("of 4 entered"));
+  await t("nurses' office rule is flagged", async () =>
+    (await p.locator("#stop-1096016\\:s10 .note.warn").innerText()).includes("NURSES"));
+  await t("no door code anywhere in the file", async () =>
+    !/3830/.test(readFileSync("index.html", "utf-8")));
   await t("papers marked as a dated snapshot", async () =>
-    /usually.*7 aug 2026/i.test(await p.locator("#stop-1096016\\:s5 .usual .lbl").innerText()));
+    /usually.*8 aug 2026/i.test(await p.locator("#stop-1096016\\:s5 .usual .lbl").innerText()));
   await t("flat list hides doors that take nothing", async () =>
-    (await p.locator("#stop-1096016\\:s5 .apt").count()) === 7);
+    (await p.locator("#stop-1096016\\:s5 .apt").count()) === 6);
+  await t("every paper has an address", async () =>
+    !(await p.locator("#pane-data,#pane-run").allInnerTexts()).join(" ").includes("had no address"));
 
   await p.click("#bigBtn"); await p.waitForTimeout(150);
   await t("clock starts", async () =>
@@ -84,7 +99,7 @@ console.log("\ncore, normal origin");
   await p.fill("#f-apts", "1st floor: A1 HS, A2 -, A3 HASA");
   await p.click("[data-add-stop]"); await p.waitForTimeout(300);
   await p.click('[data-pane="run"]'); await p.waitForTimeout(200);
-  await t("stop can be added by hand", async () => (await p.locator(".stop").count()) === 7);
+  await t("stop can be added by hand", async () => (await p.locator(".stop").count()) === 14);
   await t("papers parse", async () =>
     (await p.locator(".stop").last().innerText()).includes("HS 2"));
   await t("flats parse", async () =>
@@ -187,7 +202,7 @@ console.log("\nsandboxed iframe, opaque origin — localStorage throws");
   await p.waitForTimeout(1200);
   const f = p.frames().find(fr => fr.url().includes("inner.html"));
 
-  await t("the app still boots", async () => !!f && (await f.locator(".stop").count()) === 6);
+  await t("the app still boots", async () => !!f && (await f.locator(".stop").count()) === 13);
   await t("header renders", async () => (await f.locator("#hdrRoute").innerText()) === "1096016");
   await t("it admits it cannot save", async () =>
     (await f.locator(".note.warn").first().innerText()).includes("cannot save anything"));

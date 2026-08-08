@@ -560,13 +560,16 @@ const SEED = {
   // Not fixed: 06:30 on Fri 7.8.2026, 07:00 on Sat 8.8.2026. Read the real one
   // off the route header on the Pomo each night.
   serviceLevel: "06:30–07:00",
-  snapshot: "7 Aug 2026",
+  snapshot: "8 Aug 2026",
   routes: [
     {
       id: "1096016", from: "00:50", to: "01:43",
-      pagesTotal: 4, pagesEntered: 1,
-      totals: { HS:10, HASA:43, TCO:3, MT:1, VKO:1 },
+      pagesTotal: 4, pagesEntered: 4,
+      // Reconciled against the Pomo's own route totals: the stops below account
+      // for exactly HS 10 and HASA 43, so no building is missing.
+      totals: { HS:10, HASA:43 },
       stops: [
+        /* ---- Pomo page 1/4 ------------------------------------------------ */
         { k:"s1", street:"Lautatarhankatu", nr:"5", tag:"START",
           at:"Posti yard. Keys for all five routes are here — take them before you load.",
           next:"Left out of the Posti yard → Vanajantie → straight on to Keinusaarentie → right on Pikkujärventie → left into Talaskuja.",
@@ -588,25 +591,106 @@ const SEED = {
           papers:{}, apts:[] },
 
         { k:"s5", street:"Wähäjärvenkatu", nr:"5",
-          at:"Stairwell A, flats A1–A18. Only 7 doors take a paper.",
+          at:"Stairwell A, flats A1–A18.",
           next:"",
-          papers:{ HS:4, HASA:5, VKO:1 },
+          papers:{ HS:4, HASA:5 },
           apts:[
             { f:"1st floor", list:[ ["A3",[]], ["A2",["HS","HASA"]], ["A1",["HASA"]] ] },
-            { f:"4th floor", list:[ ["A18",[]], ["A17",[]], ["A16",["VKO"]], ["A15",[]], ["A14",["HASA"]] ] },
+            { f:"4th floor", list:[ ["A18",[]], ["A17",[]], ["A16",[]], ["A15",[]], ["A14",["HASA"]] ] },
             { f:"3rd floor", list:[ ["A13",[]], ["A12",[]], ["A11",[]], ["A10",[]], ["A9",["HS","HASA"]] ] },
             { f:"2nd floor", list:[ ["A8",["HS","HASA"]], ["A7",[]], ["A6",[]], ["A5",["HS"]], ["A4",[]] ] }
           ] },
 
         { k:"s6", street:"Wähäjärvenkatu", nr:"3",
-          at:"Stairwell A. 8 × HASA in this building.",
+          at:"Stairwell A, flats A1–A18. HASA-heavy — 8 of the 18 doors.",
           next:"",
           papers:{ HASA:8 },
-          flag:"Flat list is incomplete — the 2nd-floor rows were cut off in the photo. 6 of the 8 HASA are accounted for, so 2 more sit on the 2nd floor. Check the Pomo and fill them in.",
           apts:[
             { f:"1st floor", list:[ ["A3",["HASA"]], ["A2",[]], ["A1",[]] ] },
             { f:"4th floor", list:[ ["A18",[]], ["A17",["HASA"]], ["A16",["HASA"]], ["A15",[]], ["A14",["HASA"]] ] },
-            { f:"3rd floor", list:[ ["A13",["HASA"]], ["A12",[]], ["A11",[]], ["A10",["HASA"]] ] }
+            { f:"3rd floor", list:[ ["A13",["HASA"]], ["A12",[]], ["A11",[]], ["A10",["HASA"]], ["A9",[]] ] },
+            { f:"2nd floor", list:[ ["A8",["HASA"]], ["A7",[]], ["A6",[]], ["A5",["HASA"]], ["A4",[]] ] }
+          ] },
+
+        /* ---- Pomo page 2/4 ------------------------------------------------ */
+        { k:"s7", street:"Wähäjärvenkatu", nr:"1",
+          at:"Stairwell A, flats A1–A15.",
+          next:"Back to the start of Wähäjärvenkatu, right on Pikkujärventie, then right on Salamanteri and down to the end of the road.",
+          papers:{ HS:2, HASA:5 },
+          apts:[
+            { f:"1st floor", list:[ ["A1",[]], ["A2",[]], ["A3",[]] ] },
+            { f:"4th floor", list:[ ["A15",["HASA"]], ["A14",[]], ["A13",[]], ["A12",["HASA"]] ] },
+            { f:"3rd floor", list:[ ["A11",["HS"]], ["A10",[]], ["A9",[]], ["A8",[]] ] },
+            { f:"2nd floor", list:[ ["A7",["HS"]], ["A6",["HASA"]], ["A5",["HASA"]], ["A4",["HASA"]] ] }
+          ] },
+
+        { k:"s8", street:"Salamanteri", nr:"3",
+          at:"Flats numbered 1–26, no A prefix.",
+          next:"Behind the house, on the right.",
+          papers:{ HS:2 },
+          apts:[
+            { f:"5th floor", list:[ ["26",[]], ["25",[]], ["24",[]], ["23",["HS"]], ["22",[]], ["21",[]] ] },
+            { f:"4th floor", list:[ ["20",[]], ["19",[]], ["18",[]], ["17",[]], ["16",[]], ["15",[]] ] },
+            { f:"3rd floor", list:[ ["14",[]], ["13",[]], ["12",[]], ["11",[]], ["10",[]], ["9",[]] ] },
+            { f:"2nd floor", list:[ ["8",["HS"]], ["7",[]] ] }
+          ] },
+
+        { k:"s9", street:"Korentokatu", nr:"6",
+          at:"Flats numbered 1–26, no A prefix.",
+          next:"Back to the start of Salamanteri, right on Pikkujärventie. Entrance is through the main door opposite Aittatie.",
+          papers:{ HS:1, HASA:5 },
+          apts:[
+            { f:"1st floor", list:[ ["2",[]], ["1",[]] ] },
+            { f:"5th floor", list:[ ["26",["HS"]], ["25",[]], ["24",[]], ["23",[]], ["22",[]], ["21",[]] ] },
+            { f:"4th floor", list:[ ["20",[]], ["19",[]], ["18",[]], ["17",[]], ["16",["HASA"]], ["15",[]] ] },
+            { f:"3rd floor", list:[ ["14",[]], ["13",[]], ["12",[]], ["11",["HASA"]], ["10",[]], ["9",["HASA"]] ] },
+            { f:"2nd floor", list:[ ["8",[]], ["7",[]], ["6",["HASA"]], ["5",[]], ["4",["HASA"]], ["3",[]] ] }
+          ] },
+
+        /* ---- Pomo page 3/4 — one building fills the whole page ------------- */
+        { k:"s10", street:"Pikkujärventie", nr:"6",
+          at:"The big one — 67 flats, and the heaviest stop on the round. Mailbox is DOWNSTAIRS in the entryway. Main door has an iLoq reader; put your entry code in My note below, it is not stored anywhere else.",
+          next:"Left onto Aittatie.",
+          papers:{ HS:1, HASA:11 },
+          flag:"Two blocks of flats do NOT get delivered to the door: 3rd floor flats 17–28, and 2nd floor flats 1–12. Both go to the NURSES' OFFICE door slot. There are separate right wings on the 2nd and 3rd floors.",
+          apts:[] },
+
+        /* ---- Pomo page 4/4 ------------------------------------------------ */
+        { k:"s11", street:"Aittatie", nr:"7",
+          at:"Flats numbered 1–20, no A prefix.",
+          next:"",
+          papers:{ HASA:3 },
+          apts:[
+            { f:"1st floor", list:[ ["1",[]], ["2",[]] ] },
+            { f:"5th floor", list:[ ["20",[]], ["18",[]], ["19",[]] ] },
+            { f:"4th floor", list:[ ["15",[]], ["16",[]], ["17",["HASA"]], ["13",["HASA"]], ["14",[]] ] },
+            { f:"3rd floor", list:[ ["10",["HASA"]], ["11",[]], ["12",[]], ["8",[]], ["9",[]] ] },
+            { f:"2nd floor", list:[ ["5",[]], ["6",[]], ["7",[]], ["3",[]], ["4",[]] ] }
+          ] },
+
+        { k:"s12", street:"Aittatie", nr:"5",
+          at:"Stairwell A, flats A1–A20.",
+          next:"Entrance from the parking area.",
+          papers:{ HASA:1 },
+          apts:[
+            { f:"1st floor", list:[ ["A2",[]], ["A1",[]] ] },
+            { f:"6th floor", list:[ ["A19",[]], ["A20",[]] ] },
+            { f:"5th floor", list:[ ["A15",[]], ["A16",[]], ["A17",[]], ["A18",[]] ] },
+            { f:"4th floor", list:[ ["A11",[]], ["A12",[]], ["A13",["HASA"]], ["A14",[]] ] },
+            { f:"3rd floor", list:[ ["A7",[]], ["A8",[]], ["A9",[]], ["A10",[]] ] },
+            { f:"2nd floor", list:[ ["A3",[]], ["A4",[]], ["A5",[]], ["A6",[]] ] }
+          ] },
+
+        { k:"s13", street:"Aittatie", nr:"1", tag:"LAST",
+          at:"Flats numbered 1–24, no A prefix. The Pomo says “The end.” after this one — route finished.",
+          next:"",
+          papers:{ HASA:5 },
+          apts:[
+            { f:"5th floor", list:[ ["20",["HASA"]], ["21",[]], ["22",[]], ["23",[]], ["24",[]] ] },
+            { f:"4th floor", list:[ ["19",["HASA"]], ["18",[]], ["17",[]], ["16",[]], ["15",[]] ] },
+            { f:"3rd floor", list:[ ["14",[]], ["13",[]], ["12",[]], ["11",[]], ["10",["HASA"]] ] },
+            { f:"2nd floor", list:[ ["9",[]], ["8",[]], ["7",[]], ["6",["HASA"]], ["5",[]] ] },
+            { f:"1st floor", list:[ ["4",[]], ["3",[]], ["2",["HASA"]], ["1",[]] ] }
           ] }
       ]
     },
