@@ -953,8 +953,11 @@ const SEED = {
           next:"Continue to the intersection — mailboxes on the left.",
           papers:{ HASA:1 }, apts:[] },
 
-        { k:"c14", street:"Pokrinniemi", nr:"30 / 22 / 15 / 17",
-          at:"Shared mailboxes at the intersection, on the left, serving several house numbers.",
+        // One visit, one box, several house numbers. The address here has to be
+        // a real one or map apps cannot place it, so the pin is 17 — the number
+        // that takes the papers — and the note carries the rest.
+        { k:"c14", street:"Pokrinniemi", nr:"17",
+          at:"Shared mailboxes at the intersection, on the left. One stop serves house numbers 30, 22, 15 and 17 — the houses are spread out, the boxes are not.",
           next:"",
           papers:{ HS:1, HASA:1 },
           flag:"CHECK THIS ONE ON THE ROAD. The book lists 30, 22, 15 and 17 together under the intersection mailboxes, then prints “Pokrinniemi 22” again below with its own flats 1 and 2. I could not tell from the photo whether those are four house numbers sharing a box or something else, so this is my best reading, not a confirmed one.",
@@ -1113,7 +1116,12 @@ function esc(s){
 }
 function route(){ return DATA.routes.find(r => r.id === DAY.routeId) || DATA.routes[0]; }
 function sid(r, s){ return r.id + ":" + s.k; }
-function fullAddress(s){ return s.street + " " + s.nr + ", " + DATA.zip + " " + DATA.city; }
+/* No postcode. One round crosses several — the depot is 13110, Pikkujärventie
+   and Keinukatu are 13200, Katistentie and Idänpääntie are 13210 — and stamping
+   a single one on every address sends map apps a postcode that contradicts the
+   street. Finnish street names are unique within a municipality, so town plus
+   country resolves exactly and cannot be wrong. */
+function fullAddress(s){ return s.street + " " + s.nr + ", " + DATA.city + ", Finland"; }
 
 function hhmmToday(hhmm){
   const [h,m] = hhmm.split(":").map(Number);

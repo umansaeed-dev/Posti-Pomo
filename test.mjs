@@ -72,6 +72,33 @@ console.log("\ncore, normal origin");
     /usually.*8 aug 2026/i.test(await p.locator("#stop-1096016\\:s5 .usual .lbl").innerText()));
   await t("flat list hides doors that take nothing", async () =>
     (await p.locator("#stop-1096016\\:s5 .apt").count()) === 6);
+  // A stop that map apps cannot place is a dropped stop. This shipped once:
+  // "Pokrinniemi 30 / 22 / 15 / 17" was read by Google as house number 30 and
+  // the other three were silently lost. Runs over EVERY route, so it also
+  // guards the ones not yet entered.
+  await t("every address on every route is geocodable", async () => {
+    const bad = [];
+    for(const rid of ["1096016","1096017","1096018","1096019","1096020"]){
+      await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+      await p.click(`[data-route="${rid}"]`); await p.waitForTimeout(300);
+      const nrs = await p.locator(".stop .addr .nr").evaluateAll(els =>
+        els.map(e => e.childNodes[0].textContent.trim()));
+      // A Finnish house number: digits, optionally one letter (3a, 3b), nothing else.
+      nrs.forEach(n => { if(!/^\d+\s?[a-zA-Z]?$/.test(n)) bad.push(rid + " → " + n); });
+    }
+    if(bad.length) console.log("      unplaceable:", bad.join(", "));
+    return bad.length === 0;
+  });
+  await t("no address carries a postcode that could contradict its street", async () => {
+    await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+    await p.click('[data-route="1096018"]'); await p.waitForTimeout(300);
+    const hrefs = await p.locator("a.wr-g").evaluateAll(a => a.map(x => x.href));
+    // 1096018 is 13210 country; a hardcoded 13110 anywhere means the old bug.
+    return hrefs.every(h => !/131\d\d|132\d\d/.test(decodeURIComponent(h)));
+  });
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+  await p.click('[data-route="1096016"]'); await p.waitForTimeout(300);
+
   await t("every paper has an address", async () =>
     !(await p.locator("#pane-data,#pane-run").allInnerTexts()).join(" ").includes("had no address"));
 
@@ -170,7 +197,7 @@ console.log("\ncore, normal origin");
     const want = ["Lautatarhankatu 5","Katistentie 98","Katistentie 96","Katistentie 91",
       "Raatarinpolku 3","Hopeapellontie 2","Hopeapellontie 4","Hopeapellontie 6",
       "Hopeapellontie 5","Idänpääntie 1","Idänpääntie 3b","Idänpääntie 3a","Pokrinniemi 12",
-      "Pokrinniemi 30 / 22 / 15 / 17","Pokrinniemi 22","Idänpääntie 6","Idänpääntie 3c",
+      "Pokrinniemi 17","Pokrinniemi 22","Idänpääntie 6","Idänpääntie 3c",
       "Idänpääntie 5","Nuottatie 2","Idänpääntie 12","Verkkotie 6","Verkkotie 3",
       "Verkkotie 5","Mertapolku 2","Katistentie 100"];
     const got = await p.locator(".stop .addr").evaluateAll(els =>
