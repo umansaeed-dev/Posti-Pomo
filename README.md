@@ -7,8 +7,9 @@ The Pomo device has the delivery book but no map. This is the missing half: the
 same stops in the same order, with one-tap navigation and a place to write down
 what you learn at each door.
 
-**`index.html` is the whole app.** One file, no build step, no server, no
-network. Open it and it works.
+**`index.html` is the whole app** — one file, no build step, no dependencies.
+`sw.js`, `manifest.webmanifest` and the two icons only exist so it installs as a
+proper offline app from GitHub Pages.
 
 ## The one rule
 
@@ -32,15 +33,50 @@ when this was written down.
 
 ## Put it on your phone
 
-1. Get the file onto the phone (message it to yourself, or open the published
-   link).
-2. **iPhone** — open it in Safari, then Share → *Add to Home Screen*.
+**Turn on GitHub Pages first.** Repo → Settings → Pages → Source: *Deploy from a
+branch*, branch `claude/hameenlinna-delivery-routes-6hpebw`, folder `/ (root)`.
+A minute later it is live at
+`https://uman05.github.io/Posti-Pomo/`.
+
+This matters: **the Find screen cannot work from a file opened out of Files or
+Downloads.** Browsers refuse location access to `file://` pages, and that is a
+rule, not a setting. Served from Pages it is a real HTTPS origin, so location
+works, and a service worker keeps the whole thing running with no signal.
+
+1. Open the Pages address on the phone.
+2. **iPhone** — Safari, Share → *Add to Home Screen*.
    **Android** — Chrome menu → *Add to Home screen*.
-3. It now opens full-screen and works with no signal. Only the *Navigate*
-   buttons need a connection, and those hand off to Google Maps.
+3. Allow location when it asks. In Find, tap *Turn the compass on* once.
+4. It now opens full-screen and works offline. Only the *Navigate* buttons need
+   a connection, and those hand off to Google Maps.
+
+## Find — the part that solves not knowing the addresses
+
+No map service is reachable to bake house numbers in, and none is needed,
+because you walk to every one of these doors anyway.
+
+- Every time you tap **Delivered**, the phone saves where you were standing.
+  Night one costs you nothing extra.
+- From night two, **Find** gives you a big distance in metres and an arrow that
+  points at the door. GPS is not the internet — this works with no signal.
+- A pin taken **at the mailbox** beats any street address on this round, because
+  half these boxes are in back yards and courtyards tens of metres off the road.
+  That is precisely where a map service drops you in the wrong spot.
+- Pins average over visits, so a rough first fix corrects itself. Fixes worse
+  than 60 m, or more than 150 m from an established pin, are discarded as
+  glitches rather than averaged in.
+- **Nearest doors** lists what is around you with distances and bearings — for
+  when you are simply lost and need to orient off a door you already know.
+- The little map is drawn from your own pins. No tiles, no network.
+- **Take a photo of the door.** The right archway settles it faster than a
+  sentence. Photos live in IndexedDB and show up on the Find screen.
+- *Pin me here now* forces a pin without marking a stop delivered — that is your
+  daylight practice run.
 
 ## What it does
 
+- **Find** — distance, compass arrow, your own map, nearest doors, door photos.
+  See above; this is the one that fixes not knowing the area.
 - **Run** — the stops in book order. The current stop is expanded; the ones you
   have settled collapse out of the way. Each card shows how to drive there from
   the last stop, where the mailbox is, and the flat roster with floors. One big
@@ -54,8 +90,9 @@ when this was written down.
 - **Help** — how to get quick on a round you don't know, paper codes, and the
   Finnish words that appear on the Pomo and on doors.
 
-Your ticks clear themselves when the date rolls over. **Your door notes and your
-per-stop timings are permanent** — they are the point of the whole thing.
+Your ticks clear themselves when the date rolls over. **Your door notes, pins,
+photos and per-stop timings are permanent** — they are the point of the whole
+thing.
 
 ## What is actually in it
 
@@ -102,10 +139,14 @@ door stays tickable, because tonight's list is the Pomo's, not this one's.
 
 ## Backing it up
 
-Everything lives in the browser's local storage on that one phone. Clearing site
-data would wipe it. Once you have typed a route in, go to **Data → Backup**,
-copy the text, and message it to yourself. Pasting it back restores the routes
-and every note on any phone.
+Everything lives in the browser's storage on that one phone. Clearing site data
+would wipe it. Once you have typed a route in, go to **Data → Backup**, copy the
+text, and message it to yourself. Pasting it back restores the routes and every
+note on any phone.
+
+Note that the backup covers routes and notes. **Pins and door photos are not in
+it** — pins re-learn themselves within a run or two, and photos would make the
+text far too big to paste around.
 
 ## Paper codes
 

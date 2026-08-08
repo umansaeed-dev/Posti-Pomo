@@ -4,6 +4,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#05070d">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <title>Katinen B — Night Run</title>
 
 <style>
@@ -402,6 +404,82 @@ ul.plain b{color:var(--text)}
 }
 .toast.show{opacity:1}
 
+/* ---------- Find: the screen you hold at 01:00 on an unknown street ------- */
+
+.finder{display:flex;flex-direction:column;gap:12px}
+
+.dial{
+  position:relative;width:100%;aspect-ratio:1;max-width:300px;margin:0 auto;
+  border-radius:50%;border:1px solid var(--line);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+}
+.dial .ring{position:absolute;inset:9px;border-radius:50%;border:1px dashed var(--line-soft)}
+.dial .arrow{
+  width:62%;height:62%;display:flex;align-items:center;justify-content:center;
+  transition:transform .3s cubic-bezier(.22,1,.36,1);will-change:transform;
+}
+.dial .arrow svg{width:100%;height:100%;overflow:visible}
+.dial.stale .arrow{opacity:.3}
+.dial .card{
+  position:absolute;font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--dim);letter-spacing:.1em;
+}
+.dial .card.n{top:11px}.dial .card.s{bottom:11px}
+.dial .card.e{right:13px}.dial .card.w{left:13px}
+
+.readout{text-align:center;display:flex;flex-direction:column;gap:4px}
+.readout .dist{
+  font-family:var(--mono);font-size:56px;font-weight:700;line-height:1;
+  letter-spacing:-.04em;font-variant-numeric:tabular-nums;
+}
+.readout .dist small{font-size:21px;color:var(--muted);margin-left:4px;letter-spacing:0}
+.readout .to{font-size:21px;font-weight:800;letter-spacing:-.02em}
+.readout .to span{color:var(--muted);font-weight:600;font-size:15px}
+.readout .rel{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.04em}
+.readout.arrived .dist,.readout.arrived .rel{color:var(--good)}
+
+.gpsline{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  font-family:var(--mono);font-size:11.5px;color:var(--dim);
+}
+.gpsline .dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:0 0 auto}
+.gpsline.good .dot{background:var(--good)}
+.gpsline.poor .dot{background:var(--warn)}
+
+/* mini-map drawn from your own pinned doors — no tiles, no network */
+.mapwrap{position:relative;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.mapwrap canvas{display:block;width:100%;height:auto}
+.mapwrap .cap{
+  position:absolute;left:11px;bottom:9px;font-family:var(--mono);
+  font-size:10.5px;color:var(--dim);letter-spacing:.06em;
+}
+
+/* pins + photos on stop cards */
+.pinrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.pin{
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.04em;
+  padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim);
+}
+.pin.set{color:var(--good);border-color:var(--good)}
+
+.shot{display:flex;gap:10px;align-items:flex-start}
+.shot img{
+  width:104px;height:78px;object-fit:cover;border-radius:10px;
+  border:1px solid var(--line);flex:0 0 auto;background:var(--surface-2);
+}
+.shot .lbl{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:5px;
+}
+.camera{position:relative;display:inline-flex}
+.camera input{position:absolute;inset:0;width:100%;height:100%;opacity:0}
+
+.near{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line-soft)}
+.near:first-of-type{border-top:0}
+.near .d{font-family:var(--mono);font-size:16px;font-weight:700;width:76px;font-variant-numeric:tabular-nums}
+.near .nm{flex:1;min-width:0;font-size:15px}
+.near .bg{font-family:var(--mono);font-size:12px;color:var(--accent);width:56px;text-align:right}
+
 @media (prefers-reduced-motion:reduce){
   *{transition:none !important;animation:none !important;scroll-behavior:auto !important}
 }
@@ -422,6 +500,7 @@ ul.plain b{color:var(--text)}
     <div class="bar" id="hdrBar"><i style="width:0%"></i></div>
     <nav class="tabs" role="tablist">
       <button role="tab" aria-selected="true"  data-pane="run">Run</button>
+      <button role="tab" aria-selected="false" data-pane="find">Find</button>
       <button role="tab" aria-selected="false" data-pane="routes">Routes</button>
       <button role="tab" aria-selected="false" data-pane="data">Data</button>
       <button role="tab" aria-selected="false" data-pane="help">Help</button>
@@ -430,6 +509,7 @@ ul.plain b{color:var(--text)}
 
   <main>
     <section class="pane" id="pane-run"></section>
+    <section class="pane" id="pane-find" hidden></section>
     <section class="pane" id="pane-routes" hidden></section>
     <section class="pane" id="pane-data" hidden></section>
     <section class="pane" id="pane-help" hidden></section>
@@ -550,7 +630,8 @@ const PAPER_NAMES = {
      daily     — which stops are ticked (wiped when the date rolls over)
    ========================================================================= */
 
-const K = { data:"pp.data.v1", notes:"pp.notes.v1", times:"pp.times.v1", day:"pp.day.v1", prefs:"pp.prefs.v1" };
+const K = { data:"pp.data.v1", notes:"pp.notes.v1", times:"pp.times.v1", day:"pp.day.v1",
+            prefs:"pp.prefs.v1", pos:"pp.pos.v1" };
 
 function clone(v){ return v == null ? v : JSON.parse(JSON.stringify(v)); }
 
@@ -713,6 +794,212 @@ function unaccounted(r){
 }
 
 /* =========================================================================
+   4b. FINDING THE DOOR
+   No map service is reachable from here, and none is needed. You walk to every
+   one of these doors anyway, so the phone records where you were standing when
+   you tapped Delivered. Night one costs nothing; from night two the app can
+   point at the door with no signal at all.
+
+   A pinned door beats a geocoded street address for this round specifically —
+   half these boxes are in back yards and courtyards tens of metres off the
+   street line, which is exactly where map services drop you in the wrong place.
+   ========================================================================= */
+
+const R_EARTH = 6371000;
+const rad = d => d * Math.PI / 180;
+
+function metresBetween(a, b){
+  const dLat = rad(b.lat - a.lat);
+  const dLon = rad(b.lon - a.lon);
+  const la1 = rad(a.lat), la2 = rad(b.lat);
+  const h = Math.sin(dLat/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+  return 2 * R_EARTH * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+function bearingTo(a, b){
+  const dLon = rad(b.lon - a.lon);
+  const la1 = rad(a.lat), la2 = rad(b.lat);
+  const y = Math.sin(dLon) * Math.cos(la2);
+  const x = Math.cos(la1)*Math.sin(la2) - Math.sin(la1)*Math.cos(la2)*Math.cos(dLon);
+  return (Math.atan2(y, x) * 180/Math.PI + 360) % 360;
+}
+function fmtMetres(m){
+  if(m == null) return "—";
+  if(m < 1000) return { n: Math.round(m), u:"m" };
+  return { n: (m/1000).toFixed(m < 10000 ? 1 : 0), u:"km" };
+}
+/* Turn a relative bearing into something you can act on without looking up. */
+function clockWords(rel){
+  const r = (rel + 360) % 360;
+  if(r < 20 || r >= 340) return "straight ahead";
+  if(r < 65)  return "ahead on your right";
+  if(r < 115) return "hard right";
+  if(r < 160) return "behind you, right";
+  if(r < 200) return "behind you";
+  if(r < 245) return "behind you, left";
+  if(r < 295) return "hard left";
+  return "ahead on your left";
+}
+
+let POS = load(K.pos, {});
+
+/* A door's pin is the running mean of every fix taken there, so it tightens
+   each time you visit. Wild fixes are dropped rather than averaged in. */
+function recordFix(id, lat, lon, acc){
+  if(acc != null && acc > 60) return false;
+  const cur = POS[id];
+  if(!cur){
+    POS[id] = { lat, lon, n:1, acc: acc || 0 };
+  }else{
+    // A fix far from an established pin is a GPS glitch, not a moved building.
+    if(cur.n >= 3 && metresBetween(cur, { lat, lon }) > 150) return false;
+    const n = Math.min(cur.n, 12) + 1;
+    POS[id] = {
+      lat: cur.lat + (lat - cur.lat)/n,
+      lon: cur.lon + (lon - cur.lon)/n,
+      n, acc: Math.min(cur.acc || 999, acc || 999)
+    };
+  }
+  save(K.pos, POS);
+  return true;
+}
+
+const GEO = { pos:null, acc:null, at:0, heading:null, headingAt:0, err:null, watching:false };
+
+function startGeo(){
+  if(GEO.watching) return;
+  if(!navigator.geolocation){ GEO.err = "This browser has no location support."; renderFind(); return; }
+  GEO.watching = true;
+  navigator.geolocation.watchPosition(
+    p => {
+      GEO.pos = { lat:p.coords.latitude, lon:p.coords.longitude };
+      GEO.acc = p.coords.accuracy;
+      GEO.at = Date.now();
+      GEO.err = null;
+      // While moving, GPS course is a fine compass and needs no permission.
+      if(p.coords.heading != null && !isNaN(p.coords.heading) && p.coords.speed > 1){
+        GEO.heading = p.coords.heading; GEO.headingAt = Date.now();
+      }
+      if(!$("#pane-find").hidden) renderFind();
+    },
+    e => {
+      GEO.err = e.code === 1
+        ? "Location permission was refused. Allow it in the browser settings for this page, then reopen Find."
+        : e.code === 3 ? "No fix yet — this can take a minute outdoors."
+        : "Location unavailable right now.";
+      if(!$("#pane-find").hidden) renderFind();
+    },
+    { enableHighAccuracy:true, maximumAge:4000, timeout:20000 }
+  );
+}
+
+function onOrientation(e){
+  let h = null;
+  if(e.webkitCompassHeading != null) h = e.webkitCompassHeading;          // iOS
+  else if(e.absolute && e.alpha != null) h = (360 - e.alpha) % 360;        // spec
+  if(h == null || isNaN(h)) return;
+  GEO.heading = h; GEO.headingAt = Date.now();
+  if(!$("#pane-find").hidden) paintDial();
+}
+
+async function enableCompass(){
+  try{
+    const D = window.DeviceOrientationEvent;
+    if(D && typeof D.requestPermission === "function"){
+      const r = await D.requestPermission();
+      if(r !== "granted"){ toast("Compass permission refused"); return; }
+    }
+    window.addEventListener("deviceorientationabsolute", onOrientation, true);
+    window.addEventListener("deviceorientation", onOrientation, true);
+    PREFS.compass = true; save(K.prefs, PREFS);
+    toast("Compass on");
+    renderFind();
+  }catch(e){ toast("Compass not available on this phone"); }
+}
+
+/* Where the finder is pointing: the next unsettled stop that has a pin. */
+function findTarget(){
+  const r = route();
+  const i = firstUndoneIndex(r);
+  if(i < 0) return null;
+  for(let j = i; j < r.stops.length; j++){
+    const s = r.stops[j], id = sid(r, s);
+    if(POS[id]) return { r, s, id, ahead: j - i };
+  }
+  return { r, s:r.stops[i], id:sid(r, r.stops[i]), ahead:0, unpinned:true };
+}
+
+function pinnedCount(r){ return r.stops.filter(s => POS[sid(r, s)]).length; }
+
+/* =========================================================================
+   4c. DOOR PHOTOS
+   A picture of the archway settles "which door" faster than any sentence.
+   Kept in IndexedDB — thumbnails would blow the localStorage budget.
+   ========================================================================= */
+
+let PHOTOS = {};   // id -> dataURL, hydrated once at boot
+
+function openDB(){
+  return new Promise((res, rej) => {
+    const rq = indexedDB.open("posti-pomo", 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore("shots");
+    rq.onsuccess = () => res(rq.result);
+    rq.onerror  = () => rej(rq.error);
+  });
+}
+async function dbPut(k, v){
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction("shots", "readwrite");
+    tx.objectStore("shots").put(v, k);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+}
+async function dbDel(k){
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction("shots", "readwrite");
+    tx.objectStore("shots").delete(k);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+}
+async function dbAll(){
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction("shots", "readonly");
+    const st = tx.objectStore("shots");
+    const out = {};
+    const rq = st.openCursor();
+    rq.onsuccess = () => {
+      const c = rq.result;
+      if(!c) return res(out);
+      out[c.key] = c.value; c.continue();
+    };
+    rq.onerror = () => rej(rq.error);
+  });
+}
+
+/* Down to 560px and JPEG — a door photo doesn't need to be a portrait. */
+function shrink(file, max = 560){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const sc = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL("image/jpeg", 0.62));
+      };
+      img.onerror = rej;
+      img.src = fr.result;
+    };
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+}
+
+/* =========================================================================
    5. HEADER
    ========================================================================= */
 
@@ -855,6 +1142,25 @@ function renderRun(){
       '<a href="' + esc(mapsSearch(addr)) + '" target="_blank" rel="noopener">Map / Street View</a>' +
       "</div>");
 
+    // door photo — worth more than any sentence for "which entrance?"
+    b.push('<div class="shot">');
+    if(PHOTOS[id]) b.push('<img src="' + PHOTOS[id] + '" alt="The door at ' + esc(s.street + " " + s.nr) + '">');
+    b.push('<div style="flex:1;min-width:0"><div class="lbl">Door photo</div>' +
+      '<div class="btn-row"><span class="btn camera">' + (PHOTOS[id] ? "Replace" : "Take a photo") +
+        '<input type="file" accept="image/*" capture="environment" data-shot="' + esc(id) + '"></span>' +
+      (PHOTOS[id] ? '<button class="btn ghost" data-unshot="' + esc(id) + '">Delete</button>' : "") +
+      "</div></div></div>");
+
+    // pin state
+    const pp = POS[id];
+    b.push('<div class="pinrow">' +
+      '<span class="pin' + (pp ? " set" : "") + '">' +
+        (pp ? "Pinned · " + pp.n + " visit" + (pp.n>1?"s":"") : "Not pinned yet") + "</span>" +
+      '<button class="btn ghost" style="padding:7px 11px;font-size:12.5px" data-pin="' + esc(id) +
+        '">Pin me here now</button>' +
+      (pp ? '<button class="btn ghost" style="padding:7px 11px;font-size:12.5px" data-unpin="' + esc(id) + '">Clear</button>' : "") +
+      "</div>");
+
     if(!s.tag){
       b.push('<div class="btn-row"><button class="btn ghost" data-skip="' + esc(id) +
              '">Pomo shows nothing here tonight — skip</button></div>');
@@ -915,6 +1221,255 @@ function renderApts(r, s, id){
   }
   b.push("</div></details>");
   return b.join("");
+}
+
+/* =========================================================================
+   6b. FIND PANE
+   ========================================================================= */
+
+function renderFind(){
+  const pane = $("#pane-find");
+  const r = route();
+  const t = findTarget();
+  const parts = [];
+
+  parts.push('<div class="finder">');
+
+  // ---- the dial ----------------------------------------------------------
+  parts.push(
+    '<div class="dial" id="dial">' +
+      '<div class="ring"></div>' +
+      '<span class="card n">N</span><span class="card e">E</span>' +
+      '<span class="card s">S</span><span class="card w">W</span>' +
+      '<div class="arrow" id="arrow">' +
+        '<svg viewBox="-50 -50 100 100" aria-hidden="true">' +
+          '<path d="M0,-44 L26,32 L0,17 L-26,32 Z" fill="var(--accent)"></path>' +
+        "</svg>" +
+      "</div>" +
+    "</div>"
+  );
+
+  // ---- the readout -------------------------------------------------------
+  if(!t){
+    parts.push('<div class="readout"><div class="to">Route ' + esc(r.id) + " done</div>" +
+               '<div class="rel">nothing left to find</div></div>');
+  }else if(t.unpinned){
+    parts.push('<div class="readout"><div class="to">' + esc(t.s.street + " " + t.s.nr) +
+      '<br><span>not pinned yet</span></div>' +
+      '<div class="rel">deliver it once and it learns the spot</div></div>');
+  }else{
+    const d = GEO.pos ? metresBetween(GEO.pos, POS[t.id]) : null;
+    const f = fmtMetres(d);
+    const arrived = d != null && d < 25;
+    parts.push('<div class="readout' + (arrived ? " arrived" : "") + '">');
+    parts.push('<div class="dist">' + (d == null ? "—" : f.n + '<small>' + f.u + "</small>") + "</div>");
+    parts.push('<div class="to">' + esc(t.s.street + " " + t.s.nr) +
+      (t.ahead ? '<br><span>' + t.ahead + " stop" + (t.ahead>1?"s":"") + " further on</span>" : "") + "</div>");
+    parts.push('<div class="rel" id="relword">' + (arrived ? "you’re there" : "waiting for a fix") + "</div>");
+    parts.push("</div>");
+  }
+
+  // ---- gps quality -------------------------------------------------------
+  const age = GEO.at ? (Date.now() - GEO.at)/1000 : null;
+  let cls = "", txt;
+  if(GEO.err) txt = GEO.err;
+  else if(!GEO.pos) txt = "waiting for GPS…";
+  else{
+    cls = GEO.acc <= 15 ? "good" : GEO.acc <= 40 ? "" : "poor";
+    txt = "GPS ±" + Math.round(GEO.acc) + " m" + (age > 20 ? " · " + Math.round(age) + "s old" : "");
+  }
+  parts.push('<div class="gpsline ' + cls + '"><span class="dot"></span><span>' + esc(txt) + "</span></div>");
+
+  if(!PREFS.compass){
+    parts.push('<div class="btn-row"><button class="btn" data-compass="1">Turn the compass on</button></div>');
+    parts.push('<div class="note">Without the compass the arrow only points while you are moving, using your direction of travel. On foot in a courtyard, turn it on.</div>');
+  }
+
+  // ---- the door itself ---------------------------------------------------
+  if(t && !t.unpinned){
+    const s = t.s;
+    const b = [];
+    b.push('<div class="card"><h3>' + esc(s.street + " " + s.nr) + "</h3>");
+    if(s.at) b.push('<div class="door"><b>At the door</b>' + esc(s.at) + "</div>");
+    if(NOTES[t.id]) b.push('<div class="door"><b>My note</b>' + esc(NOTES[t.id]) + "</div>");
+    if(PHOTOS[t.id]) b.push('<div class="shot"><img src="' + PHOTOS[t.id] + '" alt="The door at ' + esc(s.street + " " + s.nr) + '"></div>');
+    b.push('<div class="pinrow"><span class="pin set">pinned from ' + POS[t.id].n + " visit" + (POS[t.id].n>1?"s":"") + "</span></div>");
+    b.push("</div>");
+    parts.push(b.join(""));
+  }
+
+  // ---- map from your own pins -------------------------------------------
+  const pinned = pinnedCount(r);
+  if(pinned >= 2){
+    parts.push('<div class="mapwrap"><canvas id="minimap" width="900" height="700"></canvas>' +
+               '<span class="cap">' + pinned + " of " + r.stops.length + " doors pinned · your own trail</span></div>");
+  }
+
+  // ---- nearest doors, for when you are simply lost ------------------------
+  if(GEO.pos){
+    const near = r.stops
+      .filter(s => POS[sid(r, s)])
+      .map(s => {
+        const id = sid(r, s);
+        return { s, id, d: metresBetween(GEO.pos, POS[id]), b: bearingTo(GEO.pos, POS[id]) };
+      })
+      .sort((a, b2) => a.d - b2.d)
+      .slice(0, 6);
+    if(near.length){
+      parts.push('<div class="card"><h3>Nearest doors<span class="sub">from where you stand</span></h3>');
+      for(const n of near){
+        const f = fmtMetres(n.d);
+        parts.push('<div class="near"><span class="d">' + f.n + " " + f.u + "</span>" +
+          '<span class="nm">' + esc(n.s.street + " " + n.s.nr) + "</span>" +
+          '<span class="bg">' + Math.round(n.b) + "°</span></div>");
+      }
+      parts.push("</div>");
+    }
+  }
+
+  if(!pinned){
+    parts.push('<div class="empty"><b style="color:var(--text)">No doors pinned on ' + esc(r.id) + " yet.</b><br>" +
+      "Just run the route as normal. Every time you tap <b>Delivered</b> the phone quietly saves where you were standing, " +
+      "and from the next run this screen points straight at the door — no signal needed.</div>");
+  }
+
+  parts.push("</div>");
+  pane.innerHTML = parts.join("");
+  paintDial();
+  drawMap();
+}
+
+/* Rotate the arrow: bearing to the door, minus which way the phone faces. */
+function paintDial(){
+  const dial = $("#dial"), arrow = $("#arrow");
+  if(!dial || !arrow) return;
+  const t = findTarget();
+  const haveHeading = GEO.heading != null && (Date.now() - GEO.headingAt) < 12000;
+
+  if(!t || t.unpinned || !GEO.pos){
+    dial.classList.add("stale");
+    arrow.style.transform = "rotate(0deg)";
+    return;
+  }
+  const brg = bearingTo(GEO.pos, POS[t.id]);
+  const rel = haveHeading ? brg - GEO.heading : brg;
+  dial.classList.toggle("stale", !haveHeading);
+  arrow.style.transform = "rotate(" + rel.toFixed(1) + "deg)";
+
+  const word = $("#relword");
+  if(word){
+    const d = metresBetween(GEO.pos, POS[t.id]);
+    word.textContent = d < 25 ? "you’re there"
+      : haveHeading ? clockWords(rel)
+      : "bearing " + Math.round(brg) + "° · turn the compass on";
+  }
+}
+
+/* A map with no tiles and no network: your pinned doors, the legs between
+   them in delivery order, and where you are standing. */
+function drawMap(){
+  const cv = $("#minimap");
+  if(!cv) return;
+  const r = route();
+  const pts = r.stops.map(s => ({ s, p: POS[sid(r, s)] })).filter(x => x.p);
+  if(pts.length < 2) return;
+
+  const all = pts.map(x => x.p).concat(GEO.pos ? [GEO.pos] : []);
+  const lats = all.map(p => p.lat), lons = all.map(p => p.lon);
+  const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+  const kx = Math.cos(rad(midLat));                 // longitude shrinks with latitude
+
+  // The backing store is ~2.5x the CSS width it renders at, so every size here
+  // is in backing pixels: 30px of text lands as ~12px on the phone.
+  const pad = 78;
+  const W = cv.width, H = cv.height;
+  const xs = lons.map(l => l * kx), ys = lats;
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const sc = Math.min((W - pad*2) / Math.max(x1-x0, 1e-9), (H - pad*2) / Math.max(y1-y0, 1e-9));
+  const px = p => pad + (p.lon*kx - x0) * sc + (W - pad*2 - (x1-x0)*sc)/2;
+  const py = p => H - pad - (p.lat - y0) * sc - (H - pad*2 - (y1-y0)*sc)/2;
+
+  const css = getComputedStyle(document.documentElement);
+  const c = (n, f) => (css.getPropertyValue(n) || f).trim();
+  const g = cv.getContext("2d");
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = c("--surface", "#0e1420");
+  g.fillRect(0, 0, W, H);
+
+  // legs, in delivery order
+  g.strokeStyle = c("--line", "#26314a");
+  g.lineWidth = 6; g.lineJoin = "round"; g.setLineDash([16, 12]);
+  g.beginPath();
+  pts.forEach((x, i) => i ? g.lineTo(px(x.p), py(x.p)) : g.moveTo(px(x.p), py(x.p)));
+  g.stroke();
+  g.setLineDash([]);
+
+  const cur = findTarget();
+  const marks = pts.map(x => {
+    const isNext = cur && !cur.unpinned && sid(r, x.s) === cur.id;
+    return { x, X:px(x.p), Y:py(x.p), isNext, done:isSettled(r, x.s), rad:isNext ? 28 : 22 };
+  });
+
+  // pass 1 — the markers themselves
+  marks.forEach((m, i) => {
+    g.beginPath(); g.arc(m.X, m.Y, m.rad, 0, Math.PI*2);
+    g.fillStyle = m.isNext ? c("--accent", "#ff8200") : m.done ? c("--surface-3", "#1e2839") : c("--surface-2", "#161e2e");
+    g.fill();
+    g.strokeStyle = m.isNext ? c("--accent", "#ff8200") : m.done ? c("--good", "#3ddc97") : c("--line", "#26314a");
+    g.lineWidth = 4; g.stroke();
+
+    g.fillStyle = m.isNext ? c("--accent-ink", "#2a1400") : c("--muted", "#8c9ab6");
+    g.font = "700 28px ui-monospace,monospace";
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(String(i+1), m.X, m.Y + 2);
+  });
+
+  // pass 2 — labels, dodging both the other labels and every marker
+  const placed = [];
+  const H_LBL = 34;
+  let lastStreet = null;
+  g.textBaseline = "middle";
+  marks.forEach(m => {
+    // A round runs down one street at a time, so repeating its name on every
+    // marker is noise — say it once, then just the house numbers.
+    const label = m.x.s.street === lastStreet ? m.x.s.nr : m.x.s.street + " " + m.x.s.nr;
+    lastStreet = m.x.s.street;
+
+    g.font = (m.isNext ? "700 " : "600 ") + "29px system-ui,sans-serif";
+    const half = g.measureText(label).width / 2;
+    const lx = Math.min(W - 8 - half, Math.max(8 + half, m.X));
+
+    const clear = y => {
+      const box = { x:lx, y, w:half*2 };
+      if(y < H_LBL/2 || y > H - H_LBL/2) return false;
+      if(placed.some(q => Math.abs(q.x - box.x) < (q.w + box.w)/2 + 10
+                       && Math.abs(q.y - box.y) < H_LBL)) return false;
+      return !marks.some(o => Math.abs(o.X - box.x) < box.w/2 + o.rad + 4
+                           && Math.abs(o.Y - y) < o.rad + H_LBL/2);
+    };
+    const above = m.Y - m.rad - 22, below = m.Y + m.rad + 22;
+    const y = [above, below, above - 38, below + 38].find(clear)
+              ?? Math.max(H_LBL/2, above);
+
+    placed.push({ x:lx, y, w:half*2 });
+    g.fillStyle = m.isNext ? c("--text", "#e8edf7") : c("--muted", "#8c9ab6");
+    g.fillText(label, lx, y);
+  });
+
+  if(GEO.pos){
+    const X = px(GEO.pos), Y = py(GEO.pos);
+    // sc is pixels per degree of latitude, and a degree of latitude is ~111.32 km,
+    // so metres become pixels via sc/111320. Clamped so a bad fix can't wash the map.
+    if(GEO.acc){
+      const rPx = Math.min(W * 0.4, Math.max(9, GEO.acc * sc / 111320));
+      g.beginPath(); g.arc(X, Y, rPx, 0, Math.PI*2);
+      g.fillStyle = "rgba(61,220,151,.10)"; g.fill();
+    }
+    g.beginPath(); g.arc(X, Y, 17, 0, Math.PI*2);
+    g.fillStyle = c("--good", "#3ddc97"); g.fill();
+    g.strokeStyle = c("--ink", "#05070d"); g.lineWidth = 6; g.stroke();
+  }
 }
 
 /* =========================================================================
@@ -1091,6 +1646,19 @@ function renderHelp(){
       "<li>Any door in a flat list can be ticked, including ones greyed out — tonight’s list can name a flat that took nothing when this was written down.</li>",
     "</ul></div>",
 
+    '<div class="card"><h3>How Find learns your doors</h3>',
+    '<p style="margin:0;color:var(--muted);font-size:14.5px;line-height:1.55">',
+      "Nobody typed these doors in. You pin them by doing the round.</p>",
+    '<ol class="steps">',
+      "<li><b>Night one, change nothing.</b> Every time you tap <i>Delivered</i>, the phone quietly saves where you were standing. That is the pin.</li>",
+      "<li><b>Night two onwards, open Find.</b> Big number is the distance in metres, the arrow points at the door. No signal needed — GPS is not the internet.</li>",
+      "<li><b>Stand at the mailbox, not at the car.</b> A pin taken at the box is worth far more than a street address, because half these boxes are in back yards tens of metres off the road. That is exactly where Google Maps puts you in the wrong place.</li>",
+      "<li><b>It sharpens itself.</b> Each visit is averaged into the pin, so a rough first fix gets corrected. Wild fixes are thrown away rather than averaged in.</li>",
+      "<li><b>Pin me here now</b> on any stop card forces a pin without marking it delivered — useful on a daylight practice run.</li>",
+      "<li><b>Take a photo of the door.</b> A picture of the right archway settles it faster than any sentence, and it shows up on the Find screen.</li>",
+      "<li><b>Lost?</b> <i>Nearest doors</i> lists what is around you with distances, so you can work out where you are from doors you already know.</li>",
+    "</ol></div>",
+
     '<div class="card"><h3>Getting quick on a round you don’t know</h3>',
     '<ol class="steps">',
       "<li><b>Drive it once in daylight, unpaid.</b> One Sunday afternoon, 40 minutes. Nothing you do at 01:00 buys back as much time as seeing the courtyards lit.</li>",
@@ -1125,10 +1693,11 @@ function renderHelp(){
 
     '<div class="card"><h3>Keep it on the phone</h3>',
     '<ul class="plain">',
-      "<li><b>iPhone:</b> open this in Safari, Share → <i>Add to Home Screen</i>. It then opens full-screen with no address bar and works with no signal.</li>",
+      "<li><b>iPhone:</b> open this in Safari, Share → <i>Add to Home Screen</i>. It then opens full-screen with no address bar.</li>",
       "<li><b>Android:</b> Chrome menu → <i>Add to Home screen</i>.</li>",
-      "<li>It works fully offline. Only the <i>Navigate</i> buttons need a connection, and they hand off to Google Maps.</li>",
-      "<li>Your ticks clear themselves each night. Your door notes stay forever.</li>",
+      "<li><b>Find needs a proper web address to work.</b> Location is blocked on a file opened straight from Files or Downloads — that is the browser’s rule, not a setting. Put this on GitHub Pages and open it from there, and the arrow works.</li>",
+      "<li>Once loaded from a web address it still runs with no signal. Only the <i>Navigate</i> buttons need a connection, and they hand off to Google Maps.</li>",
+      "<li>Your ticks clear themselves each night. Door notes, pins, photos and timings stay forever.</li>",
     "</ul></div>",
 
     '<div class="note"><b>One thing to ask your supervisor:</b> what <b>VKO</b> and <b>TCO</b> are, and whether Talaskuja 1 takes the Sunday HASA bundle every week. Those are the only two things in your book I couldn’t read with certainty.</div>'
@@ -1160,6 +1729,9 @@ function markStop(id, on){
       TIMES[id] = (TIMES[id] || []).concat(secs).slice(-20);
       save(K.times, TIMES);
     }
+    // The whole point: standing at the door is the best moment to learn where
+    // the door is, and it costs you nothing to be standing there anyway.
+    if(GEO.pos && (Date.now() - GEO.at) < 30000) recordFix(id, GEO.pos.lat, GEO.pos.lon, GEO.acc);
     // Tick every flat in the building along with it.
     for(const f of (s.apts || [])) for(const [aid, p] of f.list) if(p.length) DAY.apt[id + "|" + aid] = 1;
   }else{
@@ -1210,9 +1782,10 @@ function undoLast(){
 
 function setPane(name){
   $$(".tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.pane === name)));
-  ["run","routes","data","help"].forEach(p => { $("#pane-" + p).hidden = (p !== name); });
+  ["run","find","routes","data","help"].forEach(p => { $("#pane-" + p).hidden = (p !== name); });
   // Built on demand: rebuilding it on every tick would wipe a half-typed stop.
   if(name === "data") renderData();
+  if(name === "find"){ startGeo(); renderFind(); }
   window.scrollTo({ top:0, behavior:"auto" });
 }
 
@@ -1221,11 +1794,37 @@ function setPane(name){
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-tick],[data-apt],[data-route],[data-pane],[data-mode-toggle]," +
     "[data-clear-day],[data-add-stop],[data-del-stop],[data-copy-json],[data-import-json]," +
-    "[data-toggle-only],[data-skip]");
+    "[data-toggle-only],[data-skip],[data-pin],[data-unpin],[data-unshot],[data-compass]");
   if(!t) return;
   const d = t.dataset;
 
   if(d.pane){ setPane(d.pane); return; }
+
+  if(d.compass !== undefined){ enableCompass(); return; }
+
+  if(d.pin){
+    startGeo();
+    if(!GEO.pos){ toast("No GPS fix yet — give it a moment outdoors"); return; }
+    if(Date.now() - GEO.at > 30000){ toast("That fix is stale — wait for a fresh one"); return; }
+    const id = d.pin;
+    if(recordFix(id, GEO.pos.lat, GEO.pos.lon, GEO.acc)){
+      toast("Pinned to ±" + Math.round(GEO.acc) + " m");
+      renderAll();
+    }else{
+      toast(GEO.acc > 60 ? "Fix too rough (±" + Math.round(GEO.acc) + " m) — not saved"
+                         : "That is far from the saved pin — ignored as a glitch");
+    }
+    return;
+  }
+
+  if(d.unpin){
+    delete POS[d.unpin]; save(K.pos, POS); renderAll(); toast("Pin cleared"); return;
+  }
+
+  if(d.unshot){
+    dbDel(d.unshot).then(() => { delete PHOTOS[d.unshot]; renderAll(); toast("Photo deleted"); });
+    return;
+  }
 
   if(d.skip){ skipStop(d.skip); return; }
 
@@ -1320,6 +1919,21 @@ document.addEventListener("click", e => {
   }
 });
 
+/* Door photos, shrunk before they ever hit storage. */
+document.addEventListener("change", async e => {
+  const id = e.target.dataset ? e.target.dataset.shot : null;
+  if(!id || !e.target.files || !e.target.files[0]) return;
+  try{
+    toast("Saving photo…");
+    const url = await shrink(e.target.files[0]);
+    await dbPut(id, url);
+    PHOTOS[id] = url;
+    renderAll();
+    if(!$("#pane-find").hidden) renderFind();
+    toast("Photo saved");
+  }catch(err){ toast("Couldn't save that photo"); }
+});
+
 /* Notes save as they're typed, debounced so storage isn't hammered. */
 let noteTimer;
 document.addEventListener("input", e => {
@@ -1337,6 +1951,7 @@ $("#bigBtn").addEventListener("click", () => {
     DAY.startedAt = new Date().toISOString();
     DAY.lastAt = DAY.startedAt;
     save(K.day, DAY);
+    startGeo();                       // warm the fix before the first door
     renderAll(); scrollToCurrent();
     toast("Clock started · window closes " + r.to);
     return;
@@ -1360,11 +1975,30 @@ function renderAll(){
   renderRun();
   renderRoutes();
   if(!$("#pane-data").hidden) renderData();
+  if(!$("#pane-find").hidden) renderFind();
 }
 
 applyPrefs();
 renderAll();
 renderHelp();
+
+// Photos live in IndexedDB, so they arrive a beat after first paint.
+dbAll().then(all => { PHOTOS = all; renderAll(); }).catch(() => {});
+
+// The compass needs a gesture on iOS, but if it was granted before it can just
+// be re-attached. Location starts as soon as the round does, so that the first
+// Delivered of the night already has a fix to save.
+if(PREFS.compass){
+  window.addEventListener("deviceorientationabsolute", onOrientation, true);
+  window.addEventListener("deviceorientation", onOrientation, true);
+}
+if(DAY.startedAt) startGeo();
+
+// Served over https (GitHub Pages), the worker keeps the whole round available
+// with no signal. Opened straight from a file there is nothing to register.
+if("serviceWorker" in navigator && location.protocol === "https:"){
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
 
 // Keep the clock and the pace chip honest without re-rendering the list.
 setInterval(renderHeader, 15000);
