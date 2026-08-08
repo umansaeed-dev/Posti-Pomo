@@ -875,7 +875,155 @@ const SEED = {
           papers:{ HS:1 }, apts:[] }
       ]
     },
-    { id:"1096018", from:"02:47", to:"03:43", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
+    {
+      id: "1096018", from: "02:47", to: "03:43",
+      pagesTotal: 7, pagesEntered: 7,
+      // Reconciled: the stops below account for exactly HS 9 and HASA 42.
+      totals: { HS:9, HASA:42 },
+      // As with 1096017, no flat rosters — several buildings ran over more
+      // screens than were photographed. Addresses, order and door notes are
+      // complete. This round is suburban: real distances between stops, shared
+      // mailbox clusters, and rowhouses rather than tower blocks.
+      stops: [
+        /* ---- page 1/7 ----------------------------------------------------- */
+        { k:"c1", street:"Lautatarhankatu", nr:"5", tag:"START",
+          at:"Posti yard. This round starts where 1096017 finished.",
+          next:"Route 017 ⇒ left out of the yard, left on Pikkujärventie, right at the lights, right on Viipurintie for 500 m, right on Harvialantie for 500 m, left on Kutalantie, right on Katistentie. Block of flats on the left, just before the Pizzeria.",
+          papers:{}, apts:[] },
+
+        { k:"c2", street:"Katistentie", nr:"98",
+          at:"Just before the Pizzeria. Flats 1–30.",
+          next:"",
+          papers:{ HASA:1 }, apts:[] },
+
+        { k:"c3", street:"Katistentie", nr:"96",
+          at:"The Pizzeria itself.",
+          next:"Straight on along Katistentie as far as Raatarinpolku.",
+          papers:{}, apts:[] },
+
+        { k:"c4", street:"Katistentie", nr:"91",
+          at:"Mailbox on the right — everything goes to the same box, no walking around.",
+          next:"Across the road.",
+          papers:{}, apts:[] },
+
+        { k:"c5", street:"Raatarinpolku", nr:"3",
+          at:"Left side, at the gate.",
+          next:"Turn around and go back, right on Idänpääntie, then right on Hopeapellontie.",
+          papers:{}, apts:[] },
+
+        { k:"c6", street:"Hopeapellontie", nr:"2",
+          at:"Flats A1–A6 and B7–B9.",
+          next:"",
+          papers:{ HS:1 }, apts:[] },
+
+        /* ---- page 2/7 — rowhouse country ----------------------------------- */
+        { k:"c7", street:"Hopeapellontie", nr:"4",
+          at:"Rowhouse — flats lettered A to H, no floors. You walk the row.",
+          next:"Continue to the end of the road, rowhouse on the right.",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+
+        { k:"c8", street:"Hopeapellontie", nr:"6",
+          at:"Rowhouse — A1, A2, B3, B4.",
+          next:"Turn around and go back.",
+          papers:{}, apts:[] },
+
+        { k:"c9", street:"Hopeapellontie", nr:"5",
+          at:"Rowhouse — A1, A2, B3–B5.",
+          next:"Back, right on Idänpääntie, then left into the block of flats' yard.",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+
+        { k:"c10", street:"Idänpääntie", nr:"1",
+          at:"Six stairwells, A to F. Usually only stairwell B takes anything at all — check the Pomo before you start walking.",
+          next:"Continue left along Idänpääntie, then left into the rowhouse's yard.",
+          papers:{ HASA:2 }, apts:[] },
+
+        { k:"c11", street:"Idänpääntie", nr:"3b",
+          at:"Rowhouse — A1–A4, B5–B9, C10–C14.",
+          next:"A bit forward, mailboxes on the left, into the same yard.",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+
+        /* ---- page 3/7 — the scattered stretch ------------------------------ */
+        { k:"c12", street:"Idänpääntie", nr:"3a",
+          at:"Flats 1–13.",
+          next:"Turn left, then right onto Pokrinniemi.",
+          papers:{ HASA:1 }, apts:[] },
+
+        { k:"c13", street:"Pokrinniemi", nr:"12",
+          at:"",
+          next:"Continue to the intersection — mailboxes on the left.",
+          papers:{ HASA:1 }, apts:[] },
+
+        { k:"c14", street:"Pokrinniemi", nr:"30 / 22 / 15 / 17",
+          at:"Shared mailboxes at the intersection, on the left, serving several house numbers.",
+          next:"",
+          papers:{ HS:1, HASA:1 },
+          flag:"CHECK THIS ONE ON THE ROAD. The book lists 30, 22, 15 and 17 together under the intersection mailboxes, then prints “Pokrinniemi 22” again below with its own flats 1 and 2. I could not tell from the photo whether those are four house numbers sharing a box or something else, so this is my best reading, not a confirmed one.",
+          apts:[] },
+
+        { k:"c15", street:"Pokrinniemi", nr:"22",
+          at:"Flats 1 and 2.",
+          next:"Turn around.",
+          papers:{}, apts:[] },
+
+        { k:"c16", street:"Idänpääntie", nr:"6",
+          at:"The box is NOT on Idänpääntie. It sits on Pokrinniemi, about 50 m before the Idänpääntie crossroads.",
+          next:"Turn right onto Idänpääntie.",
+          papers:{}, apts:[] },
+
+        { k:"c17", street:"Idänpääntie", nr:"3c",
+          at:"Left side, mailboxes in the yard. Flats 1–13.",
+          next:"Continue on Idänpääntie, then left into the apartment building's yard.",
+          papers:{ HS:1, HASA:2 }, apts:[] },
+
+        { k:"c18", street:"Idänpääntie", nr:"5",
+          at:"Six stairwells, A to F, 50 flats. Each stairwell has its own count — two of the six are usually empty.",
+          next:"Continue left on Idänpääntie, left into the yard, entrance through the BACKYARD.",
+          papers:{ HS:1, HASA:6 }, apts:[] },
+
+        /* ---- pages 4–5/7 --------------------------------------------------- */
+        { k:"c19", street:"Nuottatie", nr:"2",
+          at:"Stairwells A to E.",
+          next:"Continue on Idänpääntie.",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+
+        { k:"c20", street:"Idänpääntie", nr:"12",
+          at:"Right side, mailbox at the gate.",
+          next:"Turn left, block of flats on the right.",
+          papers:{}, apts:[] },
+
+        { k:"c21", street:"Verkkotie", nr:"6",
+          at:"Stairwells A and B.",
+          next:"Continue on Verkkotie, block of flats on the left.",
+          papers:{ HASA:2 },
+          flag:"“Move quietly in the stairs.” A resident has asked — this came from the delivery book, not from me.",
+          apts:[] },
+
+        { k:"c22", street:"Verkkotie", nr:"3",
+          at:"Five stairwells, A to E, around 33 flats — often nothing at all.",
+          next:"Continue to the end of the road.",
+          papers:{}, apts:[] },
+
+        /* ---- pages 6–7/7 --------------------------------------------------- */
+        { k:"c23", street:"Verkkotie", nr:"5",
+          at:"Flats 1–30.",
+          next:"Turn around, back to the start of Idänpääntie, right on Katistentie, right on Mertapolku, to the end of the road.",
+          papers:{ HS:1 }, apts:[] },
+
+        { k:"c24", street:"Mertapolku", nr:"2",
+          at:"Two stairwells. A is the heavy one — “lock on the wall” on its 6th floor.",
+          next:"Back to the start of the road, left on Katistentie, left into the block of flats' yard.",
+          papers:{ HASA:10 },
+          flag:"Stairwell A usually takes 8 of the 10, B takes 2. Do A properly.",
+          apts:[] },
+
+        { k:"c25", street:"Katistentie", nr:"100", tag:"LAST",
+          at:"Heaviest stop on the round. Two stairwells — A around 5, B around 7. The Pomo says “The end.” after this one.",
+          next:"",
+          papers:{ HASA:12 },
+          flag:"Stairwell A, 6th floor: the door is opened from the KEYSLOT ON THE LEFT SIDE of the door.",
+          apts:[] }
+      ]
+    },
     { id:"1096019", from:"03:45", to:"04:59", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
     { id:"1096020", from:"05:00", to:"06:03", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] }
   ]

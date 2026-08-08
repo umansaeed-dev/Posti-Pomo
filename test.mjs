@@ -164,6 +164,46 @@ console.log("\ncore, normal origin");
     await p.click('[data-pane="run"]'); await p.waitForTimeout(200);
     return !txt.includes("had no address");
   });
+  await t("route 1096018 is complete and in order", async () => {
+    await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+    await p.click('[data-route="1096018"]'); await p.waitForTimeout(400);
+    const want = ["Lautatarhankatu 5","Katistentie 98","Katistentie 96","Katistentie 91",
+      "Raatarinpolku 3","Hopeapellontie 2","Hopeapellontie 4","Hopeapellontie 6",
+      "Hopeapellontie 5","Idänpääntie 1","Idänpääntie 3b","Idänpääntie 3a","Pokrinniemi 12",
+      "Pokrinniemi 30 / 22 / 15 / 17","Pokrinniemi 22","Idänpääntie 6","Idänpääntie 3c",
+      "Idänpääntie 5","Nuottatie 2","Idänpääntie 12","Verkkotie 6","Verkkotie 3",
+      "Verkkotie 5","Mertapolku 2","Katistentie 100"];
+    const got = await p.locator(".stop .addr").evaluateAll(els =>
+      els.map(e => e.querySelector(".street").textContent.trim() + " " +
+                   e.querySelector(".nr").childNodes[0].textContent.trim()));
+    return JSON.stringify(got) === JSON.stringify(want);
+  });
+  await t("1096018 papers reconcile, nothing unplaced", async () => {
+    await p.click('[data-pane="data"]'); await p.waitForTimeout(300);
+    const txt = await p.locator("#pane-data").innerText();
+    await p.click('[data-pane="run"]'); await p.waitForTimeout(200);
+    return !txt.includes("had no address");
+  });
+  await t("the unverified Pokrinniemi stretch says so", async () =>
+    (await p.locator("#stop-1096018\\:c14 .note.warn").innerText()).includes("CHECK THIS ONE"));
+  await t("the quiet-stairs request is carried", async () =>
+    (await p.locator("#stop-1096018\\:c21 .note.warn").innerText()).includes("quietly"));
+  // The 25-stop route is where the map-link splitting is most likely to fail,
+  // so assert coverage on the biggest round rather than only the smallest.
+  await t("Google parts cover all 25 stops of the longest route", async () =>
+    await everyStopCovered("a.wr-g", addrsFromGoogle));
+  await t("Apple parts cover all 25 stops of the longest route", async () =>
+    await everyStopCovered("a.wr-a", addrsFromApple));
+  await t("longest route splits into parts within Google's limit", async () => {
+    const hrefs = await p.locator("a.wr-g").evaluateAll(a => a.map(x => x.href));
+    return hrefs.length === 3 && hrefs.every(h => {
+      const w = new URL(h).searchParams.get("waypoints");
+      return !w || w.split("|").length <= 9;
+    });
+  });
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+  await p.click('[data-route="1096017"]'); await p.waitForTimeout(400);
+
   await t("Korentokatu 4 corridor rule is flagged", async () =>
     (await p.locator("#stop-1096017\\:b9 .note.warn").innerText()).includes("CORRIDOR"));
   await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
