@@ -66,7 +66,7 @@ console.log("\ncore, normal origin");
     // codes and the repository is public; they belong in the per-stop note,
     // which never leaves the phone.
     const src = readFileSync("index.html", "utf-8");
-    return !/\b(3830|4736|1510|0106)\b/.test(src);
+    return !/\b(3830|4736|1510|0106|1829|1975)\b/.test(src);
   });
   await t("papers marked as a dated snapshot", async () =>
     /usually.*8 aug 2026/i.test(await p.locator("#stop-1096016\\:s5 .usual .lbl").innerText()));
@@ -213,6 +213,31 @@ console.log("\ncore, normal origin");
   });
   await t("the unverified Pokrinniemi stretch says so", async () =>
     (await p.locator("#stop-1096018\\:c14 .note.warn").innerText()).includes("CHECK THIS ONE"));
+  await t("route 1096019 is complete, 71 stops, reconciled", async () => {
+    await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+    await p.click('[data-route="1096019"]'); await p.waitForTimeout(500);
+    const n = await p.locator(".stop").count();
+    await p.click('[data-pane="data"]'); await p.waitForTimeout(300);
+    const txt = await p.locator("#pane-data").innerText();
+    await p.click('[data-pane="run"]'); await p.waitForTimeout(200);
+    return n === 71 && !txt.includes("had no address");
+  });
+  await t("1096019 starts at the depot and ends at Myllypellontie 14", async () => {
+    const got = await p.locator(".stop .addr").evaluateAll(els =>
+      els.map(e => e.querySelector(".street").textContent.trim() + " " +
+                   e.querySelector(".nr").childNodes[0].textContent.trim()));
+    return got[0] === "Lautatarhankatu 5" && got[got.length-1] === "Myllypellontie 14";
+  });
+  await t("both address-sharing buildings are flagged", async () =>
+    (await p.locator("#stop-1096019\\:d18 .note.warn").innerText()).includes("TWO street addresses") &&
+    (await p.locator("#stop-1096019\\:d20 .note.warn").innerText()).includes("KATISTENTIE 107"));
+  await t("Viipurintie 36's second box group is flagged", async () =>
+    (await p.locator("#stop-1096019\\:d26 .note.warn").innerText()).includes("TWO separate box groups"));
+  await t("the longest route still covers every stop on the map", async () =>
+    await everyStopCovered("a.wr-g", addrsFromGoogle));
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+  await p.click('[data-route="1096018"]'); await p.waitForTimeout(400);
+
   await t("the quiet-stairs request is carried", async () =>
     (await p.locator("#stop-1096018\\:c21 .note.warn").innerText()).includes("quietly"));
   // The 25-stop route is where the map-link splitting is most likely to fail,

@@ -1027,7 +1027,215 @@ const SEED = {
           apts:[] }
       ]
     },
-    { id:"1096019", from:"03:45", to:"04:59", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
+    {
+      id: "1096019", from: "03:45", to: "04:59",
+      pagesTotal: 8, pagesEntered: 8,
+      // Reconciled: the stops below account for exactly HS 16 and HASA 56.
+      totals: { HS:16, HASA:56 },
+      // The longest round of the five. It opens on commercial door slots around
+      // Lidl and Keilakatu, then turns into long runs of individual houses on
+      // Porttiniementie, Kutalantie and Myllypellontie. Where the book puts
+      // several house numbers in one box, they are one stop here — that is one
+      // park and one walk — with the other numbers named in the note.
+      stops: [
+        /* ---- page 1/8 — the commercial stretch ----------------------------- */
+        { k:"d1", street:"Lautatarhankatu", nr:"5", tag:"START",
+          at:"Posti yard. This round starts where 1096018 finished.",
+          next:"Route 018 ⇒ back to the start of Mertapolku, right on Katistentie, left on Kutalantie, right on Harvialantie, drive until LIDL.",
+          papers:{}, apts:[] },
+
+        { k:"d2", street:"Liikekatu", nr:"1",
+          at:"The Lidl building.",
+          next:"Turn around, go to the shops immediately next to NESTE on the left.",
+          papers:{}, apts:[] },
+
+        { k:"d3", street:"Liikekatu", nr:"2",
+          at:"Door slots — RTV and Kirpputori.",
+          next:"Left on Harvialantie, left on Keilakatu, to the other end of the same building.",
+          papers:{}, apts:[] },
+
+        { k:"d4", street:"Keilakatu", nr:"1",
+          at:"Door slots — Wurth and Granlund.",
+          next:"Bowling hall across the road.",
+          papers:{ HASA:1 }, apts:[] },
+
+        { k:"d5", street:"Keilakatu", nr:"2",
+          at:"Door slot. The bowling hall.",
+          next:"Continue on Keilakatu.",
+          papers:{}, apts:[] },
+
+        { k:"d6", street:"Keilakatu", nr:"4", at:"Flats 1–21.", next:"",
+          papers:{ HASA:4 }, apts:[] },
+
+        { k:"d7", street:"Keilakatu", nr:"6", at:"Flats 16–28.", next:"",
+          papers:{ HASA:4 }, apts:[] },
+
+        /* ---- page 2/8 ------------------------------------------------------ */
+        { k:"d8", street:"Keilakatu", nr:"8",
+          at:"Stairwells A and B. A takes 5, B takes 1 plus the HS.",
+          next:"Turn left on Ortelantie, apartment building immediately on the right.",
+          papers:{ HS:1, HASA:6 }, apts:[] },
+
+        { k:"d9", street:"Ortelantie", nr:"6",
+          at:"Six stairwells, A to F — the book runs them F, E, D, C, B, A. One HASA in each of A–E, and the HS is in A.",
+          next:"Continue on Ortelantie.",
+          papers:{ HS:1, HASA:5 }, apts:[] },
+
+        /* ---- page 3/8 — houses with gate and fence boxes -------------------- */
+        { k:"d10", street:"Ortelantie", nr:"8", at:"Right side, at the gate.", next:"",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+        { k:"d11", street:"Ortelantie", nr:"10", at:"Right side, on the fence. Flats A, B, C.", next:"",
+          papers:{}, apts:[] },
+        { k:"d12", street:"Ortelantie", nr:"12", at:"Right side, at the gate.", next:"",
+          papers:{}, apts:[] },
+        { k:"d13", street:"Ortelantie", nr:"16", at:"", next:"", papers:{}, apts:[] },
+        { k:"d14", street:"Ortelantie", nr:"14", at:"",
+          next:"Apartment building on the left, just before the intersection.",
+          papers:{}, apts:[] },
+
+        { k:"d15", street:"Ortelantie", nr:"5",
+          at:"Heaviest stop on the round. Stairwell A takes 3, B takes 8 plus the HS — and five of B's are stacked on the 4th floor, so take the lift up and work down. Coded entry: put the code in My note, it is not stored in this app.",
+          next:"Turn around and go back — next block of flats on the right, just behind number 5.",
+          papers:{ HS:1, HASA:11 }, apts:[] },
+
+        /* ---- page 4/8 ------------------------------------------------------ */
+        { k:"d16", street:"Ortelantie", nr:"3",
+          at:"Stairwell A is usually empty; B takes everything. Same entry code as number 5 — keep it in My note.",
+          next:"",
+          papers:{ HS:2, HASA:2 }, apts:[] },
+
+        { k:"d17", street:"Ortelantie", nr:"1",
+          at:"Right side, at the gate.",
+          next:"Turn around and go back, right on Viipurintie, right into the backyard of the first building.",
+          papers:{}, apts:[] },
+
+        { k:"d18", street:"Hätilänkatu", nr:"2",
+          at:"Door on the RIGHT-HAND side in the backyard. Stairwell A also has a “Downstairs” section below the 1st floor.",
+          next:"Back, turn right on Hätilänkatu, block of flats on the left.",
+          papers:{ HASA:1 },
+          flag:"One stairwell, TWO street addresses. The book alternates between Hätilänkatu 2 and Ruutikellarintie 1 as you climb — B1 and B4 are Hätilänkatu, B2, B3 and B5–B8 are Ruutikellarintie. It is one visit; do not drive round the block looking for a second building.",
+          apts:[] },
+
+        /* ---- page 5/8 ------------------------------------------------------ */
+        { k:"d19", street:"Hätilänkatu", nr:"3",
+          at:"Stairwells A, B and E, plus door slots at the LEFT end of the house for flats A1 and F71.",
+          next:"Back to the Viipurintie intersection, left, then immediately right on Katistentie. Apartment building on the right.",
+          papers:{ HS:2, HASA:2 }, apts:[] },
+
+        /* ---- page 6/8 ------------------------------------------------------ */
+        { k:"d20", street:"Viipurintie", nr:"32",
+          at:"Landmark: outside is the pizzeria. Stairwells A, B and C, plus a Shops section and a Backyard section.",
+          next:"Continue on Katistentie.",
+          papers:{ HS:3, HASA:3 },
+          flag:"Second address-sharing building on this round: the flats split between Viipurintie 32 and KATISTENTIE 107, and the book keeps switching the heading as you climb. One building, one visit — the paper totals above cover both.",
+          apts:[] },
+
+        { k:"d21", street:"Katistentie", nr:"105",
+          at:"Mailbox on the house's wall.", next:"", papers:{ HS:1 }, apts:[] },
+        { k:"d22", street:"Katistentie", nr:"103",
+          at:"Mailbox on the house's wall.", next:"", papers:{ HASA:1 }, apts:[] },
+        { k:"d23", street:"Katistentie", nr:"101",
+          at:"Mailbox on the house's wall.", next:"Turn around.", papers:{}, apts:[] },
+        { k:"d24", street:"Katistentie", nr:"104",
+          at:"Right side, to the door.",
+          next:"A bit forward, block of flats on the right — entrance through the backyard.",
+          papers:{}, apts:[] },
+
+        { k:"d25", street:"Viipurintie", nr:"34",
+          at:"Mailbox in the CORNER of the building, next to the traffic lights — at the entrance of Ossin pulla.",
+          next:"Turn right.",
+          papers:{ HASA:1 }, apts:[] },
+
+        /* ---- page 7/8 ------------------------------------------------------ */
+        { k:"d26", street:"Viipurintie", nr:"36",
+          at:"Storefronts.",
+          next:"Continue on Viipurintie, block of flats on the right.",
+          papers:{},
+          flag:"TWO separate box groups at this address. Behind the house is one group (also Mainosässä) for A5 and A6. At the END of the house is another group of five boxes for the B flats. Find both.",
+          apts:[] },
+
+        { k:"d27", street:"Porttiniementie", nr:"32",
+          at:"Door slot at the end of the house.",
+          next:"Continue on Viipurintie.",
+          papers:{ HASA:2 }, apts:[] },
+
+        { k:"d28", street:"Viipurintie", nr:"44", at:"Flats 1 and 2.", next:"", papers:{}, apts:[] },
+        { k:"d29", street:"Viipurintie", nr:"46", at:"Right side, at the gate.",
+          next:"Turn right.", papers:{}, apts:[] },
+
+        { k:"d30", street:"Myllypellontie", nr:"23", at:"Right side, into the yard.",
+          next:"Drive past Tarhurintie.", papers:{ HASA:1 }, apts:[] },
+        { k:"d31", street:"Myllypellontie", nr:"17", at:"", next:"", papers:{}, apts:[] },
+        { k:"d32", street:"Myllypellontie", nr:"19", at:"Right side, to the door.", next:"", papers:{}, apts:[] },
+        { k:"d33", street:"Myllypellontie", nr:"15", at:"",
+          next:"Continue on Myllypellontie — door slot behind the house.", papers:{}, apts:[] },
+        { k:"d34", street:"Myllypellontie", nr:"11",
+          at:"Right side, at the door, BEHIND the house.",
+          next:"Turn around and go back, left on Tarhurintie, left on Porttiniementie for about 250 m, then left into number 10's yard.",
+          papers:{ HASA:1 }, apts:[] },
+
+        { k:"d35", street:"Porttiniementie", nr:"10",
+          at:"Left side, to the door. Mail slot on the WALL, BELOW THE WINDOW.",
+          next:"Turn around and go back along Porttiniementie.",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+        { k:"d36", street:"Porttiniementie", nr:"20", at:"", next:"", papers:{ HS:1, HASA:1 }, apts:[] },
+        { k:"d37", street:"Porttiniementie", nr:"22", at:"", next:"", papers:{}, apts:[] },
+        { k:"d38", street:"Porttiniementie", nr:"24", at:"Flat B.", next:"", papers:{ HASA:1 }, apts:[] },
+        { k:"d39", street:"Porttiniementie", nr:"26", at:"", next:"Turn right.", papers:{}, apts:[] },
+
+        { k:"d40", street:"Tarhurintie", nr:"2", at:"", next:"", papers:{}, apts:[] },
+        { k:"d41", street:"Tarhurintie", nr:"3", at:"", next:"", papers:{}, apts:[] },
+        { k:"d42", street:"Tarhurintie", nr:"4", at:"Right side, on the rowhouse's wall. Flats A–E.", next:"", papers:{}, apts:[] },
+        { k:"d43", street:"Tarhurintie", nr:"5", at:"", next:"", papers:{}, apts:[] },
+        { k:"d44", street:"Tarhurintie", nr:"6", at:"", next:"", papers:{}, apts:[] },
+        { k:"d45", street:"Tarhurintie", nr:"1", at:"",
+          next:"Turn around and go back, then right.", papers:{}, apts:[] },
+
+        /* ---- page 8/8 ------------------------------------------------------ */
+        { k:"d46", street:"Porttiniementie", nr:"28",
+          at:"One box group for numbers 28, 21, 23 and 30.",
+          next:"Continue a bit forward — mailboxes on the left.",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+        { k:"d47", street:"Porttiniementie", nr:"25",
+          at:"Mailboxes on the left, serving 25 and 27.",
+          next:"Turn around and go back, straight on along Porttiniementie.",
+          papers:{}, apts:[] },
+        { k:"d48", street:"Porttiniementie", nr:"17", at:"With 18.", next:"", papers:{}, apts:[] },
+        { k:"d49", street:"Porttiniementie", nr:"16", at:"With 15 and 14.", next:"", papers:{}, apts:[] },
+        { k:"d50", street:"Porttiniementie", nr:"13",
+          at:"Right side, to the door, BEHIND the house.", next:"", papers:{ HASA:1 }, apts:[] },
+        { k:"d51", street:"Porttiniementie", nr:"12", at:"", next:"", papers:{ HS:1 }, apts:[] },
+        { k:"d52", street:"Porttiniementie", nr:"11", at:"With 9, 8 and 7.", next:"", papers:{}, apts:[] },
+        { k:"d53", street:"Porttiniementie", nr:"6", at:"With 5 and 4.", next:"", papers:{ HASA:1 }, apts:[] },
+        { k:"d54", street:"Porttiniementie", nr:"3", at:"With 2 and 1.",
+          next:"Turn right on Kutalantie.", papers:{}, apts:[] },
+
+        { k:"d55", street:"Kutalantie", nr:"5", at:"Päiväkoti — the day nursery.", next:"", papers:{}, apts:[] },
+        { k:"d56", street:"Kutalantie", nr:"3",
+          at:"Right side, at the gate. Several boxes here — ALL the papers go into the one with “Hämeen Sanomat” written on it.",
+          next:"", papers:{}, apts:[] },
+        { k:"d57", street:"Kutalantie", nr:"1b", at:"",
+          next:"Turn around and go back.", papers:{ HASA:1 }, apts:[] },
+        { k:"d58", street:"Kutalantie", nr:"2", at:"Right side, mailboxes on the building's wall.", next:"", papers:{}, apts:[] },
+        { k:"d59", street:"Kutalantie", nr:"4", at:"", next:"", papers:{}, apts:[] },
+        { k:"d60", street:"Kutalantie", nr:"6", at:"", next:"", papers:{}, apts:[] },
+        { k:"d61", street:"Kutalantie", nr:"8", at:"Flat 1.", next:"", papers:{ HASA:1 }, apts:[] },
+        { k:"d62", street:"Kutalantie", nr:"10", at:"",
+          next:"Reverse a little and turn left onto Myllypellontie.", papers:{}, apts:[] },
+
+        { k:"d63", street:"Myllypellontie", nr:"1", at:"", next:"", papers:{}, apts:[] },
+        { k:"d64", street:"Myllypellontie", nr:"2", at:"", next:"", papers:{}, apts:[] },
+        { k:"d65", street:"Myllypellontie", nr:"3", at:"Flats A and B.", next:"", papers:{}, apts:[] },
+        { k:"d66", street:"Myllypellontie", nr:"4", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+        { k:"d67", street:"Myllypellontie", nr:"5", at:"With 6, 7, 8 and 9.", next:"", papers:{}, apts:[] },
+        { k:"d68", street:"Myllypellontie", nr:"10", at:"Flats 1 and 2.", next:"", papers:{}, apts:[] },
+        { k:"d69", street:"Myllypellontie", nr:"12", at:"", next:"", papers:{}, apts:[] },
+        { k:"d70", street:"Myllypellontie", nr:"13", at:"Flats 1 and 2.", next:"", papers:{}, apts:[] },
+        { k:"d71", street:"Myllypellontie", nr:"14", tag:"LAST",
+          at:"The Pomo says “The end.” after this one — round finished.",
+          next:"", papers:{ HASA:1 }, apts:[] }
+      ]
+    },
     { id:"1096020", from:"05:00", to:"06:03", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] }
   ]
 };
