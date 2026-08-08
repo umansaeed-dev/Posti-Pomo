@@ -630,20 +630,44 @@ const PAPER_NAMES = {
      daily     — which stops are ticked (wiped when the date rolls over)
    ========================================================================= */
 
+/* Declared before anything that runs at load time can reach for them. */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
 const K = { data:"pp.data.v1", notes:"pp.notes.v1", times:"pp.times.v1", day:"pp.day.v1",
             prefs:"pp.prefs.v1", pos:"pp.pos.v1" };
 
 function clone(v){ return v == null ? v : JSON.parse(JSON.stringify(v)); }
 
+/* localStorage is not always there. An opaque origin — a sandboxed iframe, some
+   private-browsing modes — throws on the very first touch. Probe it once, and
+   fall back to memory so the app still runs; it just forgets when the tab
+   closes, and the Run screen says so plainly rather than pretending.
+
+   Nothing in here may call a helper declared further down this file: this runs
+   during module evaluation, when those bindings are still in the temporal dead
+   zone, and a ReferenceError at this point kills the whole script. */
+const MEM = Object.create(null);
+let STORAGE_OK = false;
+try{
+  localStorage.setItem("pp.probe", "1");
+  localStorage.removeItem("pp.probe");
+  STORAGE_OK = true;
+}catch(e){ STORAGE_OK = false; }
+
 function load(key, fallback){
   try{
-    const raw = localStorage.getItem(key);
+    const raw = STORAGE_OK ? localStorage.getItem(key) : (MEM[key] || null);
     return raw ? JSON.parse(raw) : clone(fallback);
   }catch(e){ return clone(fallback); }
 }
 function save(key, val){
-  try{ localStorage.setItem(key, JSON.stringify(val)); }
-  catch(e){ toast("Couldn't save — phone storage is full or blocked"); }
+  let s;
+  try{ s = JSON.stringify(val); }catch(e){ return; }
+  MEM[key] = s;
+  if(!STORAGE_OK) return;
+  try{ localStorage.setItem(key, s); }
+  catch(e){ STORAGE_OK = false; }   // quota or permission lost mid-session
 }
 
 function todayKey(){
@@ -667,9 +691,6 @@ if(!DATA.routes.some(r => r.id === DAY.routeId)) DAY.routeId = DATA.routes[0].id
 /* =========================================================================
    3. HELPERS
    ========================================================================= */
-
-const $  = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 function esc(s){
   return String(s == null ? "" : s)
@@ -1075,6 +1096,16 @@ function renderRun(){
     );
     pane.innerHTML = parts.join("");
     return;
+  }
+
+  // Never let someone work a whole round believing it is being remembered.
+  if(!STORAGE_OK){
+    parts.push(
+      '<div class="note warn"><b>This page cannot save anything.</b> Ticks, notes, ' +
+      "pins and photos will be gone the moment you close it, and the compass will not " +
+      "work either. That happens when the app runs inside a preview frame. " +
+      "Open it from its own web address instead and everything works normally.</div>"
+    );
   }
 
   // Honest warning when the book is only partly transcribed.
