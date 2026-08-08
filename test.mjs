@@ -61,8 +61,13 @@ console.log("\ncore, normal origin");
     !(await p.locator("#pane-run").innerText()).includes("of 4 entered"));
   await t("nurses' office rule is flagged", async () =>
     (await p.locator("#stop-1096016\\:s10 .note.warn").innerText()).includes("NURSES"));
-  await t("no door code anywhere in the file", async () =>
-    !/3830/.test(readFileSync("index.html", "utf-8")));
+  await t("no door code anywhere in the file", async () => {
+    // Every code the delivery book has shown. These are live building-access
+    // codes and the repository is public; they belong in the per-stop note,
+    // which never leaves the phone.
+    const src = readFileSync("index.html", "utf-8");
+    return !/\b(3830|4736|1510|0106)\b/.test(src);
+  });
   await t("papers marked as a dated snapshot", async () =>
     /usually.*8 aug 2026/i.test(await p.locator("#stop-1096016\\:s5 .usual .lbl").innerText()));
   await t("flat list hides doors that take nothing", async () =>
@@ -110,6 +115,29 @@ console.log("\ncore, normal origin");
   await p.click('[data-maps="google"]'); await p.waitForTimeout(250);
   await p.click('[data-pane="run"]'); await p.waitForTimeout(250);
 
+
+  await t("route 1096017 is complete and in order", async () => {
+    await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+    await p.click('[data-route="1096017"]'); await p.waitForTimeout(400);
+    const want = ["Lautatarhankatu 5","Pikkujärventie 7","Pikkujärventie 8","Pikkujärventie 9",
+      "Hilpi Kummilan Tie 2","Hilpi Kummilan Tie 4","Hilpi Kummilan Tie 6","Korentokatu 2",
+      "Korentokatu 4","Keinukatu 10","Keinukatu 7","Keinukatu 5","Keinukatu 4","Keinukatu 2",
+      "Keinukatu 1","Hilpinkuja 3","Kummilankuja 4","Hilpi Kummilan Tie 16"];
+    const got = await p.locator(".stop .addr").evaluateAll(els =>
+      els.map(e => e.querySelector(".street").textContent.trim() + " " +
+                   e.querySelector(".nr").childNodes[0].textContent.trim()));
+    return JSON.stringify(got) === JSON.stringify(want);
+  });
+  await t("1096017 papers reconcile, nothing unplaced", async () => {
+    await p.click('[data-pane="data"]'); await p.waitForTimeout(300);
+    const txt = await p.locator("#pane-data").innerText();
+    await p.click('[data-pane="run"]'); await p.waitForTimeout(200);
+    return !txt.includes("had no address");
+  });
+  await t("Korentokatu 4 corridor rule is flagged", async () =>
+    (await p.locator("#stop-1096017\\:b9 .note.warn").innerText()).includes("CORRIDOR"));
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+  await p.click('[data-route="1096016"]'); await p.waitForTimeout(400);
 
   await p.click("#bigBtn"); await p.waitForTimeout(150);
   await t("clock starts", async () =>

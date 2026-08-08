@@ -752,7 +752,123 @@ const SEED = {
           ] }
       ]
     },
-    { id:"1096017", from:"01:44", to:"02:45", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
+    {
+      id: "1096017", from: "01:44", to: "02:45",
+      pagesTotal: 9, pagesEntered: 9,
+      // Reconciled: the eighteen stops below account for exactly HS 9 and
+      // HASA 37, the totals the Pomo prints on the route header.
+      totals: { HS:9, HASA:37 },
+      // Flat rosters are deliberately absent on this route. Several buildings
+      // ran over more screens than were photographed, and a half-copied flat
+      // list is worse than none — it looks authoritative and sends you to the
+      // wrong floor. The addresses, the order and the door notes are complete,
+      // and those are the parts that do not change. Papers come off the Pomo.
+      stops: [
+        /* ---- page 1/9 ----------------------------------------------------- */
+        { k:"b1", street:"Lautatarhankatu", nr:"5", tag:"START",
+          at:"Posti yard. This round starts where 1096016 finished, not back at the depot.",
+          next:"Route 16 ⇒ turn around and left onto Pikkujärventie.",
+          papers:{}, apts:[] },
+
+        { k:"b2", street:"Pikkujärventie", nr:"7",
+          at:"Sento box, RED, 1st floor.",
+          next:"Across the road.",
+          papers:{ HS:1, HASA:1 }, apts:[] },
+
+        { k:"b3", street:"Pikkujärventie", nr:"8",
+          at:"Mailbox at the door.",
+          next:"",
+          papers:{}, apts:[] },
+
+        { k:"b4", street:"Pikkujärventie", nr:"9",
+          at:"Sento box, no marking, 9/2. 1st floor.",
+          next:"Left into the parking lot and drive to the end — entrance from the Viipurintie side.",
+          papers:{ HS:1, HASA:2 }, apts:[] },
+
+        { k:"b5", street:"Hilpi Kummilan Tie", nr:"2",
+          at:"Exec box, GREY, 8th floor. Flats A1–A31.",
+          next:"From the stairs towards the left — two flats behind Hilpi Kummilan Tie 4.",
+          papers:{ HS:2, HASA:4 },
+          flag:"A1 is not with the rest. Go downstairs immediately after the block of flats — door slot on the RIGHT side of the stairs. It takes a HASA, so it is not one to skip.",
+          apts:[] },
+
+        /* ---- page 2/9 ----------------------------------------------------- */
+        { k:"b6", street:"Hilpi Kummilan Tie", nr:"4",
+          at:"Three separate ways in for one address — see the note.",
+          next:"",
+          papers:{ HS:2, HASA:3 },
+          flag:"A1 → door slot BEHIND the building, right end. A2 → door slot BEHIND the building, left end. A3 and up → up the stairs, entrance from the parking-place side. That entrance has a code on an iLOQ reader — put it in My note below, it is not stored in this app.",
+          apts:[] },
+
+        { k:"b7", street:"Hilpi Kummilan Tie", nr:"6",
+          at:"Sento box, GREEN, 6th floor. Flats A1–A24.",
+          next:"Back, straight on to the Korentokatu intersection.",
+          papers:{ HASA:1 }, apts:[] },
+
+        /* ---- page 3/9 ----------------------------------------------------- */
+        { k:"b8", street:"Korentokatu", nr:"2",
+          at:"Abloy Easy, 1st floor.",
+          next:"Continue along Korentokatu, bearing right.",
+          papers:{}, apts:[] },
+
+        { k:"b9", street:"Korentokatu", nr:"4",
+          at:"Two stairwells, one visit. A first — Exec box, YELLOW, 5th floor.",
+          next:"Back and right onto Keinukatu — block of flats on the left.",
+          papers:{ HASA:16 },
+          flag:"Heaviest stop on the round. After A-stairs, walk through the CORRIDOR to B-stairs and take the lift to the top floor, then work down. Do not go back outside looking for another entrance. A takes 7, B takes 9.",
+          apts:[] },
+
+        /* ---- pages 4–5/9 --------------------------------------------------- */
+        { k:"b10", street:"Keinukatu", nr:"10",
+          at:"iLOQ reader, 5th floor. Flats A1–A24.",
+          next:"Continue along Keinukatu — entrance from the backyard.",
+          papers:{ HASA:3 }, apts:[] },
+
+        { k:"b11", street:"Keinukatu", nr:"7",
+          at:"All the mailboxes are next to the entrance — no climbing. Sento box, no marking, HA4/3. Flats 1–28.",
+          next:"Continue along Keinukatu.",
+          papers:{}, apts:[] },
+
+        { k:"b12", street:"Keinukatu", nr:"5",
+          at:"iLOQ with the little ring — the key works like a fob and is very fussy about the exact spot on the reader. Flats A1–A23.",
+          next:"Continue along Keinukatu — apartment building on the left.",
+          papers:{ HS:2, HASA:2 }, apts:[] },
+
+        /* ---- pages 6–8/9 --------------------------------------------------- */
+        { k:"b13", street:"Keinukatu", nr:"4",
+          at:"Big block, flats 66–119, but usually only a paper or two. Check before you climb.",
+          next:"In the same yard.",
+          papers:{ HASA:1 }, apts:[] },
+
+        { k:"b14", street:"Keinukatu", nr:"2",
+          at:"65 flats, A1–A65 — often nothing at all. Shares the yard with Keinukatu 4, so one park does both.",
+          next:"Across the road from Keinukatu 4.",
+          papers:{}, apts:[] },
+
+        { k:"b15", street:"Keinukatu", nr:"1",
+          at:"Coded entry — put the code in My note below, it is not stored in this app.",
+          next:"Left onto Hilpi Kummilan Tie, then left onto Hilpinkuja. Take the rest of the apartment buildings in one go.",
+          papers:{}, apts:[] },
+
+        /* ---- page 9/9 ------------------------------------------------------ */
+        { k:"b16", street:"Hilpinkuja", nr:"3",
+          at:"Coded entry, and there is a way in without it — both go in My note below rather than in this app.",
+          next:"Forward, same yard.",
+          papers:{ HASA:3 },
+          flag:"Flat 47 on the 2nd floor goes INTO THE IKIFIT MAILBOX, not to the door. The rest split between a left side and a right side on the 1st floor.",
+          apts:[] },
+
+        { k:"b17", street:"Kummilankuja", nr:"4",
+          at:"Flats 1–10.",
+          next:"Forward, same yard.",
+          papers:{ HASA:1 }, apts:[] },
+
+        { k:"b18", street:"Hilpi Kummilan Tie", nr:"16", tag:"LAST",
+          at:"Flats A1–A28. The Pomo says “The end.” after this one — round finished.",
+          next:"",
+          papers:{ HS:1 }, apts:[] }
+      ]
+    },
     { id:"1096018", from:"02:47", to:"03:43", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
     { id:"1096019", from:"03:45", to:"04:59", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
     { id:"1096020", from:"05:00", to:"06:03", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] }
