@@ -290,6 +290,7 @@ body{
 }
 .navrow a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .navrow a.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.navrow a small{display:block;font-size:11px;font-weight:600;opacity:.62;margin-top:2px;letter-spacing:0}
 
 .avg{font-family:var(--mono);font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 
@@ -891,21 +892,64 @@ function toast(msg){
   toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
 }
 
+/* Which app the per-stop buttons hand off to. One phone, one preference. */
+function usingApple(){ return PREFS.maps === "apple"; }
+
 function mapsDir(addr){
-  return "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(addr) + "&travelmode=driving";
+  return usingApple()
+    ? "https://maps.apple.com/?daddr=" + encodeURIComponent(addr) + "&dirflg=d"
+    : "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(addr) + "&travelmode=driving";
 }
 function mapsSearch(addr){
-  return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr);
+  return usingApple()
+    ? "https://maps.apple.com/?q=" + encodeURIComponent(addr)
+    : "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr);
 }
-function mapsWholeRoute(r){
+
+/* Google takes real waypoints, but caps them — keep the first nine
+   intermediates and say so on the button rather than silently dropping stops. */
+const GOOGLE_WAYPOINT_CAP = 9;
+
+function googleWholeRoute(r){
   const stops = r.stops;
   if(stops.length < 2) return null;
   const origin = encodeURIComponent(fullAddress(stops[0]));
   const dest   = encodeURIComponent(fullAddress(stops[stops.length-1]));
-  // Google caps waypoints; keep the first nine intermediates and say so.
-  const mid = stops.slice(1, -1).slice(0, 9).map(s => encodeURIComponent(fullAddress(s))).join("|");
+  // %7C rather than a bare pipe: Google tolerates the literal, but a raw "|" is
+  // not legal in a URL and some in-app browsers refuse to open it.
+  const mid = stops.slice(1, -1).slice(0, GOOGLE_WAYPOINT_CAP)
+    .map(s => encodeURIComponent(fullAddress(s))).join("%7C");
   return "https://www.google.com/maps/dir/?api=1&origin=" + origin +
          "&destination=" + dest + (mid ? "&waypoints=" + mid : "") + "&travelmode=driving";
+}
+
+/* Apple documents a single `daddr` and no waypoints at all. What it does still
+   honour is the `A+to:B+to:C` chain it inherited from the Google-Maps era —
+   undocumented, so it may collapse to the first leg on some iOS versions.
+   Labelled honestly on the button; Google is the reliable one for the full round. */
+function appleWholeRoute(r){
+  const stops = r.stops;
+  if(stops.length < 2) return null;
+  const chain = stops.map(s => encodeURIComponent(fullAddress(s))).join("+to:");
+  return "https://maps.apple.com/?daddr=" + chain + "&dirflg=d";
+}
+
+function googleStopsShown(r){
+  return Math.min(r.stops.length, GOOGLE_WAYPOINT_CAP + 2);
+}
+
+/* Both buttons, always — this is the one place worth showing each app, since
+   they behave differently and only the rider's phone can settle which is better. */
+function wholeRouteRow(r){
+  if(r.stops.length < 2) return "";
+  const shown = googleStopsShown(r);
+  const capped = shown < r.stops.length;
+  return '<div class="navrow wholeroute">' +
+    '<a class="wr wr-g" href="' + esc(googleWholeRoute(r)) + '" target="_blank" rel="noopener">🟢 Whole route · Google' +
+      (capped ? "<br><small>first " + shown + " of " + r.stops.length + " stops</small>" : "") + "</a>" +
+    '<a class="wr wr-a" href="' + esc(appleWholeRoute(r)) + '" target="_blank" rel="noopener">⚫ Whole route · Apple' +
+      "<br><small>all " + r.stops.length + " stops, if iOS allows</small></a>" +
+    "</div>";
 }
 
 /* =========================================================================
@@ -1336,7 +1380,8 @@ function renderRun(){
     const addr = fullAddress(s);
     b.push('<div class="navrow">' +
       '<a class="pri" href="' + esc(mapsDir(addr)) + '" target="_blank" rel="noopener">Navigate</a>' +
-      '<a href="' + esc(mapsSearch(addr)) + '" target="_blank" rel="noopener">Map / Street View</a>' +
+      '<a href="' + esc(mapsSearch(addr)) + '" target="_blank" rel="noopener">' +
+        (usingApple() ? "Map / Look Around" : "Map / Street View") + "</a>" +
       "</div>");
 
     // door photo — worth more than any sentence for "which entrance?"
@@ -1373,11 +1418,7 @@ function renderRun(){
     parts.push(b.join(""));
   });
 
-  const whole = mapsWholeRoute(r);
-  if(whole){
-    parts.push('<div class="navrow"><a href="' + esc(whole) + '" target="_blank" rel="noopener">' +
-      "Open the whole route in Google Maps" + (r.stops.length > 11 ? " (first 11 stops)" : "") + "</a></div>");
-  }
+  parts.push(wholeRouteRow(r));
 
   pane.innerHTML = parts.join("");
 }
@@ -1427,11 +1468,7 @@ function renderOverview(r){
   });
   b.push("</div>");
 
-  const whole = mapsWholeRoute(r);
-  if(whole){
-    b.push('<div class="navrow"><a href="' + esc(whole) + '" target="_blank" rel="noopener">' +
-      "Open the whole route in Google Maps" + (r.stops.length > 11 ? " (first 11 stops)" : "") + "</a></div>");
-  }
+  b.push(wholeRouteRow(r));
   return b.join("");
 }
 
@@ -1749,6 +1786,19 @@ function renderRoutes(){
   }
 
   parts.push('<div class="card"><h3>Tonight</h3>' + renderDayStats() + "</div>");
+  parts.push('<div class="card"><h3>Maps<span class="sub">for the Navigate buttons</span></h3>' +
+    '<div class="viewtog">' +
+      '<button data-maps="google" aria-pressed="' + (!usingApple()) + '">🟢 Google Maps</button>' +
+      '<button data-maps="apple" aria-pressed="' + usingApple() + '">⚫ Apple Maps</button>' +
+    "</div>" +
+    '<p style="margin:0;color:var(--muted);font-size:13.5px;line-height:1.5">' +
+      "This sets which app a single stop opens in. The <b>whole route</b> buttons at the " +
+      "bottom of the stop list always offer both, because they behave differently: Google " +
+      "takes proper waypoints but caps them at 11 stops, while Apple can take the whole " +
+      "chain — though that part is undocumented and some iOS versions drop everything after " +
+      "the first stop. Try both once and use whichever your phone handles.</p>" +
+    "</div>");
+
   parts.push('<div class="card"><h3>Screen</h3>' +
     '<div class="btn-row">' +
       '<button class="btn" data-mode-toggle="1">' + (PREFS.mode === "amber" ? "Back to night blue" : "Amber night-vision") + "</button>" +
@@ -2046,11 +2096,19 @@ document.addEventListener("click", e => {
   const t = e.target.closest("[data-tick],[data-apt],[data-route],[data-pane],[data-mode-toggle]," +
     "[data-clear-day],[data-add-stop],[data-del-stop],[data-copy-json],[data-import-json]," +
     "[data-toggle-only],[data-skip],[data-pin],[data-unpin],[data-unshot],[data-compass]," +
-    "[data-view],[data-goto]");
+    "[data-view],[data-goto],[data-maps]");
   if(!t) return;
   const d = t.dataset;
 
   if(d.pane){ setPane(d.pane); return; }
+
+  if(d.maps){
+    PREFS.maps = d.maps;
+    save(K.prefs, PREFS);
+    renderAll();
+    toast(d.maps === "apple" ? "Stops open in Apple Maps" : "Stops open in Google Maps");
+    return;
+  }
 
   if(d.view){
     PREFS.overview = (d.view === "all");

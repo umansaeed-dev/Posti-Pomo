@@ -70,6 +70,47 @@ console.log("\ncore, normal origin");
   await t("every paper has an address", async () =>
     !(await p.locator("#pane-data,#pane-run").allInnerTexts()).join(" ").includes("had no address"));
 
+  // maps hand-off
+  await t("whole route offers both map apps", async () => {
+    const hrefs = await p.locator(".wholeroute a").evaluateAll(a => a.map(x => x.href));
+    return hrefs.some(h => h.includes("google.com/maps/dir")) &&
+           hrefs.some(h => h.includes("maps.apple.com/?daddr="));
+  });
+  await t("apple whole route chains every stop", async () => {
+    const href = await p.locator("a.wr-a").first().getAttribute("href");
+    const legs = href.split("+to:").length;
+    return legs === 13 && /Lautatarhankatu%205/.test(href) && /Aittatie%201/.test(href);
+  });
+  await t("google whole route caps waypoints honestly", async () => {
+    const a = p.locator("a.wr-g").first();
+    const href = await a.getAttribute("href");
+    const waypoints = (href.match(/waypoints=([^&]*)/) || ["",""])[1];
+    const n = waypoints ? waypoints.split("%7C").length : 0;
+    return n === 9 && (await a.innerText()).includes("first 11 of 13");
+  });
+  await t("per-stop links follow the Google preference", async () => {
+    const h = await p.locator("#stop-1096016\\:s5 .navrow a").first().getAttribute("href");
+    return h.includes("google.com/maps/dir");
+  });
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+  await p.click('[data-maps="apple"]'); await p.waitForTimeout(250);
+  await p.click('[data-pane="run"]'); await p.waitForTimeout(250);
+  await t("per-stop links switch to Apple", async () => {
+    const h = await p.locator("#stop-1096016\\:s5 .navrow a").first().getAttribute("href");
+    return h.startsWith("https://maps.apple.com/?daddr=") && h.includes("dirflg=d");
+  });
+  await t("Look Around label under Apple", async () =>
+    (await p.locator("#stop-1096016\\:s5 .navrow a").nth(1).innerText()).includes("Look Around"));
+  await t("both whole-route buttons remain under Apple", async () => {
+    const hrefs = await p.locator(".wholeroute a").evaluateAll(a => a.map(x => x.href));
+    return hrefs.some(h => h.includes("google.com/maps/dir")) &&
+           hrefs.some(h => h.includes("maps.apple.com/?daddr="));
+  });
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+  await p.click('[data-maps="google"]'); await p.waitForTimeout(250);
+  await p.click('[data-pane="run"]'); await p.waitForTimeout(250);
+
+
   await p.click("#bigBtn"); await p.waitForTimeout(150);
   await t("clock starts", async () =>
     (await p.locator("#bigBtn").innerText()).startsWith("Delivered"));
