@@ -81,18 +81,48 @@ console.log("\ncore, normal origin");
     return hrefs.some(h => h.includes("google.com/maps/dir")) &&
            hrefs.some(h => h.includes("maps.apple.com/?daddr="));
   });
-  await t("apple whole route chains every stop", async () => {
-    const href = await p.locator("a.wr-a").first().getAttribute("href");
-    const legs = href.split("+to:").length;
-    return legs === 13 && /Lautatarhankatu%205/.test(href) && /Aittatie%201/.test(href);
+
+  // The bug this replaced: one link silently dropped 7 of 18 stops.
+  const everyStopCovered = async (sel, extract) => {
+    const want = await p.locator(".stop .addr").evaluateAll(els =>
+      els.map(e => e.querySelector(".street").textContent.trim() + " " +
+                   e.querySelector(".nr").childNodes[0].textContent.trim()));
+    const hrefs = await p.locator(sel).evaluateAll(a => a.map(x => x.href));
+    const seen = new Set();
+    for(const h of hrefs) for(const addr of extract(h)) seen.add(addr);
+    return want.every(w => seen.has(w));
+  };
+  const addrsFromGoogle = h => {
+    const u = new URL(h);
+    const parts = [u.searchParams.get("origin"), u.searchParams.get("destination")]
+      .concat((u.searchParams.get("waypoints") || "").split("|").filter(Boolean));
+    return parts.filter(Boolean).map(a => a.split(",")[0]);
+  };
+  const addrsFromApple = h => decodeURIComponent(new URL(h).search)
+    .replace("?daddr=", "").replace("&dirflg=d", "")
+    .split("+to:").map(a => a.split(",")[0]);
+
+  await t("Google parts cover every stop, none dropped", async () =>
+    await everyStopCovered("a.wr-g", addrsFromGoogle));
+  await t("Apple parts cover every stop, none dropped", async () =>
+    await everyStopCovered("a.wr-a", addrsFromApple));
+  await t("no single Google part exceeds the 9-waypoint limit", async () => {
+    const hrefs = await p.locator("a.wr-g").evaluateAll(a => a.map(x => x.href));
+    return hrefs.every(h => {
+      const w = new URL(h).searchParams.get("waypoints");
+      return !w || w.split("|").length <= 9;
+    });
   });
-  await t("google whole route caps waypoints honestly", async () => {
-    const a = p.locator("a.wr-g").first();
-    const href = await a.getAttribute("href");
-    const waypoints = (href.match(/waypoints=([^&]*)/) || ["",""])[1];
-    const n = waypoints ? waypoints.split("%7C").length : 0;
-    return n === 9 && (await a.innerText()).includes("first 11 of 13");
+  await t("parts overlap so no leg is lost between them", async () => {
+    const hrefs = await p.locator("a.wr-g").evaluateAll(a => a.map(x => x.href));
+    for(let i = 1; i < hrefs.length; i++){
+      const prevEnd = new URL(hrefs[i-1]).searchParams.get("destination");
+      const thisStart = new URL(hrefs[i]).searchParams.get("origin");
+      if(prevEnd !== thisStart) return false;
+    }
+    return true;
   });
+
   await t("per-stop links follow the Google preference", async () => {
     const h = await p.locator("#stop-1096016\\:s5 .navrow a").first().getAttribute("href");
     return h.includes("google.com/maps/dir");

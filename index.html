@@ -292,6 +292,12 @@ body{
 .navrow a.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .navrow a small{display:block;font-size:11px;font-weight:600;opacity:.62;margin-top:2px;letter-spacing:0}
 
+.wholeroute{display:flex;flex-direction:column;gap:7px}
+.wholeroute .wr-lbl{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim);
+}
+
 .avg{font-family:var(--mono);font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 
 /* ---------- whole-route view ---------------------------------------------
@@ -1022,49 +1028,68 @@ function mapsSearch(addr){
     : "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr);
 }
 
-/* Google takes real waypoints, but caps them — keep the first nine
-   intermediates and say so on the button rather than silently dropping stops. */
-const GOOGLE_WAYPOINT_CAP = 9;
+/* No map app will take a whole Posti round in one link. Google's URL API allows
+   nine waypoints, so eleven stops including start and finish; Apple's undocumented
+   chain truncates too. Sending 18 stops and letting the app quietly drop seven of
+   them is the worst outcome — you would not notice until you were standing in the
+   wrong yard.
 
-function googleWholeRoute(r){
-  const stops = r.stops;
-  if(stops.length < 2) return null;
-  const origin = encodeURIComponent(fullAddress(stops[0]));
-  const dest   = encodeURIComponent(fullAddress(stops[stops.length-1]));
+   So the route is cut into parts that fit, each starting on the stop the previous
+   one ended on, so no leg of the round is missing from the pair. */
+const MAX_STOPS_PER_LINK = 11;
+
+/* Balanced split: two parts of nine legs each beats one of ten and one of seven. */
+function routeSegments(stops, max = MAX_STOPS_PER_LINK){
+  const legs = stops.length - 1;
+  if(legs < 1) return [];
+  const parts = Math.ceil(legs / (max - 1));
+  const per = Math.ceil(legs / parts);
+  const out = [];
+  for(let start = 0; start < stops.length - 1; start += per){
+    const end = Math.min(start + per, stops.length - 1);
+    out.push({ from: start, to: end, stops: stops.slice(start, end + 1) });
+  }
+  return out;
+}
+
+function googleLink(seg){
+  const origin = encodeURIComponent(fullAddress(seg.stops[0]));
+  const dest   = encodeURIComponent(fullAddress(seg.stops[seg.stops.length-1]));
   // %7C rather than a bare pipe: Google tolerates the literal, but a raw "|" is
   // not legal in a URL and some in-app browsers refuse to open it.
-  const mid = stops.slice(1, -1).slice(0, GOOGLE_WAYPOINT_CAP)
-    .map(s => encodeURIComponent(fullAddress(s))).join("%7C");
+  const mid = seg.stops.slice(1, -1).map(s => encodeURIComponent(fullAddress(s))).join("%7C");
   return "https://www.google.com/maps/dir/?api=1&origin=" + origin +
          "&destination=" + dest + (mid ? "&waypoints=" + mid : "") + "&travelmode=driving";
 }
 
-/* Apple documents a single `daddr` and no waypoints at all. What it does still
-   honour is the `A+to:B+to:C` chain it inherited from the Google-Maps era —
-   undocumented, so it may collapse to the first leg on some iOS versions.
-   Labelled honestly on the button; Google is the reliable one for the full round. */
-function appleWholeRoute(r){
-  const stops = r.stops;
-  if(stops.length < 2) return null;
-  const chain = stops.map(s => encodeURIComponent(fullAddress(s))).join("+to:");
-  return "https://maps.apple.com/?daddr=" + chain + "&dirflg=d";
+/* Apple documents a single `daddr` and no waypoints at all. What it still honours
+   is the `A+to:B+to:C` chain inherited from the Google-Maps era. Same segment
+   sizes as Google, so the two apps show the same parts and can be compared. */
+function appleLink(seg){
+  return "https://maps.apple.com/?daddr=" +
+         seg.stops.map(s => encodeURIComponent(fullAddress(s))).join("+to:") + "&dirflg=d";
 }
 
-function googleStopsShown(r){
-  return Math.min(r.stops.length, GOOGLE_WAYPOINT_CAP + 2);
-}
-
-/* Both buttons, always — this is the one place worth showing each app, since
-   they behave differently and only the rider's phone can settle which is better. */
 function wholeRouteRow(r){
   if(r.stops.length < 2) return "";
-  const shown = googleStopsShown(r);
-  const capped = shown < r.stops.length;
-  return '<div class="navrow wholeroute">' +
-    '<a class="wr wr-g" href="' + esc(googleWholeRoute(r)) + '" target="_blank" rel="noopener">🟢 Whole route · Google' +
-      (capped ? "<br><small>first " + shown + " of " + r.stops.length + " stops</small>" : "") + "</a>" +
-    '<a class="wr wr-a" href="' + esc(appleWholeRoute(r)) + '" target="_blank" rel="noopener">⚫ Whole route · Apple' +
-      "<br><small>all " + r.stops.length + " stops, if iOS allows</small></a>" +
+  const segs = routeSegments(r.stops);
+  const many = segs.length > 1;
+
+  const label = seg => many
+    ? "stops " + (seg.from + 1) + "–" + (seg.to + 1)
+    : "all " + r.stops.length + " stops";
+
+  const row = (cls, mk, name, icon) =>
+    '<div class="navrow">' + segs.map(seg =>
+      '<a class="wr ' + cls + '" href="' + esc(mk(seg)) + '" target="_blank" rel="noopener">' +
+        icon + " " + name + "<br><small>" + label(seg) + "</small></a>").join("") +
+    "</div>";
+
+  return '<div class="wholeroute">' +
+    '<div class="wr-lbl">Whole route' +
+      (many ? " — " + segs.length + " parts, each picks up where the last ends" : "") + "</div>" +
+    row("wr-g", googleLink, "Google", "🟢") +
+    row("wr-a", appleLink, "Apple", "⚫") +
     "</div>";
 }
 
