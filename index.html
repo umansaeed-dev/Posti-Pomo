@@ -557,7 +557,9 @@ const SEED = {
   zip: "13110",
   depot: "Lautatarhankatu 5",
   shiftStart: "00:30",
-  serviceLevel: "06:30",
+  // Not fixed: 06:30 on Fri 7.8.2026, 07:00 on Sat 8.8.2026. Read the real one
+  // off the route header on the Pomo each night.
+  serviceLevel: "06:30–07:00",
   snapshot: "7 Aug 2026",
   routes: [
     {
@@ -1511,7 +1513,8 @@ function renderRoutes(){
   const parts = [];
   parts.push('<div class="note"><b>Depot &amp; keys:</b> ' + esc(DATA.depot) + ", " + esc(DATA.zip + " " + DATA.city) +
     ". Keys for all five routes are in the yard. Shift " + esc(DATA.shiftStart) +
-    ", everything on doorsteps by <b>" + esc(DATA.serviceLevel) + "</b>.</div>");
+    ". Service level is <b>" + esc(DATA.serviceLevel) + "</b> depending on the day — " +
+    "the exact time is on the route header in the Pomo.</div>");
 
   for(const r of DATA.routes){
     const total = r.stops.length;
