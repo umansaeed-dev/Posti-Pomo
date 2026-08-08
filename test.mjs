@@ -105,6 +105,36 @@ console.log("\ncore, normal origin");
   await t("flats parse", async () =>
     (await p.locator(".stop").last().locator(".apt").count()) === 2);
 
+  // whole-route overview
+  await p.click('[data-view="all"]'); await p.waitForTimeout(300);
+  // 14 by now: the 13 real stops plus the one added by hand above.
+  await t("overview lists every stop", async () => (await p.locator(".rrow").count()) === 14);
+  await t("overview keeps Pomo order", async () => {
+    const got = await p.locator(".rrow .ad").evaluateAll(els =>
+      els.map(e => e.childNodes[0].textContent.trim()));
+    return got[0] === "Lautatarhankatu 5" && got[9] === "Pikkujärventie 6" && got[12] === "Aittatie 1";
+  });
+  await t("overview shows the legs", async () =>
+    (await p.locator(".rrow .lg").first().innerText()).includes("Posti yard"));
+  await t("overview fits without sideways scroll", async () =>
+    await p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+  await t("can tick from the overview", async () => {
+    const before = await p.locator(".rrow.settled").count();
+    await p.locator(".rrow .tk").nth(4).click(); await p.waitForTimeout(250);
+    return (await p.locator(".rrow.settled").count()) === before + 1;
+  });
+  await t("tapping a row opens the working view there", async () => {
+    await p.locator(".rrow").nth(9).click(); await p.waitForTimeout(400);
+    return (await p.locator(".stop").count()) === 14 &&
+           (await p.locator(".rrow").count()) === 0;
+  });
+  await t("view choice survives reload", async () => {
+    await p.click('[data-view="all"]'); await p.waitForTimeout(250);
+    await p.reload(); await p.waitForTimeout(500);
+    return (await p.locator(".rrow").count()) === 14;
+  });
+  await p.click('[data-view="work"]'); await p.waitForTimeout(300);
+
   await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
   await p.click("[data-mode-toggle]"); await p.waitForTimeout(150);
   await t("amber night mode", async () =>

@@ -293,6 +293,63 @@ body{
 
 .avg{font-family:var(--mono);font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 
+/* ---------- whole-route view ---------------------------------------------
+   The working view is one big card at a time. This is the other question a
+   rider asks — "what does the whole round look like, and what's still ahead?"
+   One line per stop, the leg to it underneath, the entire route on two screens. */
+
+.viewtog{display:flex;gap:0;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.viewtog button{
+  flex:1;appearance:none;background:transparent;border:0;cursor:pointer;
+  color:var(--muted);font-family:var(--sans);font-size:13.5px;font-weight:700;padding:11px 8px;
+}
+.viewtog button[aria-pressed="true"]{background:var(--surface-3);color:var(--text)}
+.viewtog button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.rlist{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.rrow{
+  display:flex;align-items:flex-start;gap:11px;width:100%;
+  padding:11px 12px;border-top:1px solid var(--line-soft);
+  cursor:pointer;text-align:left;
+}
+.rrow:first-child{border-top:0}
+.rrow.cur{background:var(--accent-soft)}
+.rrow.settled .ad{color:var(--dim);text-decoration:line-through}
+.rrow.settled .lg{opacity:.5}
+.rrow .n{
+  flex:0 0 auto;width:26px;height:26px;border-radius:50%;margin-top:2px;
+  background:var(--surface-3);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:12px;font-weight:700;
+}
+.rrow.cur .n{background:var(--accent);color:var(--accent-ink)}
+.rrow.settled .n{background:transparent;border:1px solid var(--good);color:var(--good)}
+.rrow.skipped .n{background:transparent;border:1px dashed var(--dim);color:var(--dim)}
+.rrow .mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.rrow .ad{font-size:16.5px;font-weight:700;letter-spacing:-.01em}
+.rrow .ad em{font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-left:7px}
+.rrow .lg{
+  font-size:12.5px;color:var(--muted);line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.rrow .pp{display:flex;gap:4px;flex-wrap:wrap}
+.rrow .pp .p{font-size:11px;padding:2px 6px;opacity:.72}
+.rrow .tk{
+  flex:0 0 auto;width:34px;height:34px;border-radius:9px;margin-top:1px;
+  border:2px solid var(--line);background:transparent;cursor:pointer;
+  color:transparent;font-size:17px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.rrow.settled .tk{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+.rrow.skipped .tk{background:transparent;border-style:dashed;color:var(--dim)}
+.rrow .tk:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.rsum{
+  display:flex;flex-wrap:wrap;gap:7px;align-items:center;
+  font-family:var(--mono);font-size:11.5px;color:var(--dim);
+}
+
 /* ---------- notices, empties --------------------------------------------- */
 
 .note{
@@ -810,10 +867,20 @@ function sumPapers(list){
   return out;
 }
 function countPapers(p){ return Object.values(p||{}).reduce((a,b)=>a+b, 0); }
+/* Titles always read in the same order, biggest circulation first, so a glance
+   at two different stops compares like with like. */
+const PAPER_ORDER = ["HS", "HASA", "MT", "VKO", "TCO"];
+function paperRank(k){
+  const i = PAPER_ORDER.indexOf(k);
+  return i < 0 ? PAPER_ORDER.length : i;
+}
+function papersSorted(p){
+  return Object.entries(p || {})
+    .filter(([,v]) => v > 0)
+    .sort((a, b) => paperRank(a[0]) - paperRank(b[0]) || a[0].localeCompare(b[0]));
+}
 function papersLine(p){
-  const e = Object.entries(p||{}).filter(([,v]) => v > 0);
-  if(!e.length) return "";
-  return e.map(([k,v]) => k + " " + v).join("  ");
+  return papersSorted(p).map(([k,v]) => k + " " + v).join("  ");
 }
 
 let toastTimer;
@@ -1202,6 +1269,20 @@ function renderRun(){
       "estimate will look far too good. Add the remaining pages under <b>Data</b>.</div>"
     );
   }
+  // The two questions a rider asks, each with its own screen.
+  parts.push(
+    '<div class="viewtog">' +
+      '<button data-view="work" aria-pressed="' + (!PREFS.overview) + '">Working view</button>' +
+      '<button data-view="all" aria-pressed="' + (!!PREFS.overview) + '">Whole route</button>' +
+    "</div>"
+  );
+
+  if(PREFS.overview){
+    parts.push(renderOverview(r));
+    pane.innerHTML = parts.join("");
+    return;
+  }
+
   r.stops.forEach((s, i) => {
     const id = sid(r, s);
     const isDone = !!DAY.done[id];
@@ -1239,8 +1320,7 @@ function renderRun(){
     // this is only here so an unfamiliar building isn't a total surprise.
     if(countPapers(s.papers)){
       b.push('<div class="usual"><span class="lbl">Usually · ' + esc(DATA.snapshot || "old snapshot") + '</span>' +
-        '<span class="papers">' + Object.entries(s.papers)
-          .filter(([,v]) => v > 0)
+        '<span class="papers">' + papersSorted(s.papers)
           .map(([k,v]) => '<span class="p ' + k.toLowerCase() + '">' + esc(k) + " " + v + "</span>")
           .join("") + "</span></div>");
     }
@@ -1300,6 +1380,59 @@ function renderRun(){
   }
 
   pane.innerHTML = parts.join("");
+}
+
+/* The whole round on two screens: one line per stop, in book order, with the
+   leg that gets you there underneath it. Tapping a row opens that stop in the
+   working view — so this doubles as the way to jump around the route. */
+function renderOverview(r){
+  const cur = firstUndoneIndex(r);
+  const b = [];
+
+  const totals = sumPapers(r.stops.map(s => s.papers));
+  const settled = r.stops.filter(s => isSettled(r, s)).length;
+  const pinned = pinnedCount(r);
+  b.push('<div class="rsum">' +
+    "<span>" + r.stops.length + " stops</span><span>·</span>" +
+    "<span>" + settled + " done</span><span>·</span>" +
+    "<span>" + esc(papersLine(totals) || "no papers listed") + "</span>" +
+    (pinned ? "<span>·</span><span>" + pinned + " pinned</span>" : "") +
+    "</div>");
+
+  b.push('<div class="rlist">');
+  r.stops.forEach((s, i) => {
+    const id = sid(r, s);
+    const done = !!DAY.done[id], skip = !!DAY.skip[id];
+    const prev = i > 0 ? r.stops[i-1] : null;
+    const cls = "rrow" + (done || skip ? " settled" : "") + (skip ? " skipped" : "") +
+                (i === cur ? " cur" : "");
+
+    b.push('<div class="' + cls + '" data-goto="' + esc(id) + '" role="button" tabindex="0">');
+    b.push('<span class="n">' + (i+1) + "</span>");
+    b.push('<span class="mid">');
+    b.push('<span class="ad">' + esc(s.street + " " + s.nr) +
+      (s.tag ? "<em>" + esc(s.tag) + "</em>" : "") +
+      (skip ? "<em>nothing tonight</em>" : i === cur ? "<em>next</em>" : "") + "</span>");
+    if(countPapers(s.papers)){
+      b.push('<span class="pp">' + papersSorted(s.papers)
+        .map(([k,v]) => '<span class="p ' + k.toLowerCase() + '">' + esc(k) + " " + v + "</span>")
+        .join("") + "</span>");
+    }
+    // How you get here, not what you do here — this view is about the shape.
+    if(prev && prev.next) b.push('<span class="lg">↳ ' + esc(prev.next) + "</span>");
+    b.push("</span>");
+    b.push('<button class="tk" data-tick="' + esc(id) + '" aria-label="Mark ' +
+           esc(s.street + " " + s.nr) + ' delivered">✓</button>');
+    b.push("</div>");
+  });
+  b.push("</div>");
+
+  const whole = mapsWholeRoute(r);
+  if(whole){
+    b.push('<div class="navrow"><a href="' + esc(whole) + '" target="_blank" rel="noopener">' +
+      "Open the whole route in Google Maps" + (r.stops.length > 11 ? " (first 11 stops)" : "") + "</a></div>");
+  }
+  return b.join("");
 }
 
 function renderApts(r, s, id){
@@ -1912,11 +2045,30 @@ function setPane(name){
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-tick],[data-apt],[data-route],[data-pane],[data-mode-toggle]," +
     "[data-clear-day],[data-add-stop],[data-del-stop],[data-copy-json],[data-import-json]," +
-    "[data-toggle-only],[data-skip],[data-pin],[data-unpin],[data-unshot],[data-compass]");
+    "[data-toggle-only],[data-skip],[data-pin],[data-unpin],[data-unshot],[data-compass]," +
+    "[data-view],[data-goto]");
   if(!t) return;
   const d = t.dataset;
 
   if(d.pane){ setPane(d.pane); return; }
+
+  if(d.view){
+    PREFS.overview = (d.view === "all");
+    save(K.prefs, PREFS);
+    renderRun();
+    window.scrollTo({ top:0, behavior:"auto" });
+    return;
+  }
+
+  // Tapping a row in the whole-route view opens that stop in the working view.
+  if(d.goto){
+    PREFS.overview = false;
+    save(K.prefs, PREFS);
+    renderRun();
+    const el = document.getElementById("stop-" + d.goto);
+    if(el) el.scrollIntoView({ behavior:"smooth", block:"center" });
+    return;
+  }
 
   if(d.compass !== undefined){ enableCompass(); return; }
 
@@ -2035,6 +2187,16 @@ document.addEventListener("click", e => {
     renderAll(); toast("Loaded");
     return;
   }
+});
+
+/* The route rows are divs so the tick button can nest inside them; give them
+   the keyboard behaviour a button would have had. */
+document.addEventListener("keydown", e => {
+  if(e.key !== "Enter" && e.key !== " ") return;
+  const row = e.target.closest && e.target.closest("[data-goto]");
+  if(!row) return;
+  e.preventDefault();
+  row.click();
 });
 
 /* Door photos, shrunk before they ever hit storage. */
