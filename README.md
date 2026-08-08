@@ -96,20 +96,46 @@ thing.
 
 ## What is actually in it
 
-Route **1096016** is entered as far as the photos went: page **1 of 4**, six
-stops, Lautatarhankatu 5 through Wähäjärvenkatu 3, from the **7 Aug 2026**
-snapshot. Routes 1096017–1096020 are empty shells with their time windows.
+All five routes, complete, in Pomo order, from the **7 Aug 2026** snapshot —
+138 stops:
 
-The app is honest about this — under **Data** it shows how many papers that
-snapshot's route total accounts for versus how many have an address, which is a
-rough measure of how much book is still untyped. It is a transcription check,
-not a count of anything you carry tonight.
+| Route | Stops | Ends at |
+|---|---|---|
+| 1096016 | 13 | Aittatie 1 |
+| 1096017 | 18 | Hilpi Kummilan Tie 16 |
+| 1096018 | 25 | Katistentie 100 |
+| 1096019 | 71 | Myllypellontie 14 |
+| 1096020 | 11 | Heikkilänkatu 1 |
 
-Two gaps worth closing, both flagged in the app:
+Every route starts at the depot, Lautatarhankatu 5. Each route's stops were
+checked back against the paper totals printed in the Pomo's own header — they
+all reconcile, which is how I know nothing was dropped in transcription. Under
+**Data** the app shows that same sum, so you can re-check it yourself.
 
-- **Wähäjärvenkatu 3** — the 2nd-floor flat rows were cut off in the photo. Six
-  of the eight HASA are placed; two more are on that floor.
+Three things are flagged in the app rather than guessed at:
+
+- **Pokrinniemi 30 / 22 / 15 / 17** on 1096018 — the Pomo prints these as one
+  box group and it isn't clear on paper which door they hang off. Settle it on
+  the road and put the answer in *My note*.
+- **Tyllilänkatu 1 and 3** — each prints a second paper total at stairwell D
+  under a heading the photos didn't capture.
 - **VKO** and **TCO** — paper codes I could not identify. Ask your supervisor.
+
+### Postcodes
+
+Every address carries its own postcode — 13110 for the depot, 13200 in
+Keinusaari, 13210 in Hätilä and Katinen — and each of the 31 streets was looked
+up individually rather than copied from its neighbour.
+
+This is not cosmetic. Finnish street names repeat across municipalities and a
+geocoder is free to ignore the town you typed: without a code,
+*Heikkilänkatu 4, Hämeenlinna* resolved to **Heikkilänkatu 4, 37600
+Valkeakoski**, 20 km away, and stretched route 1096020 to a 49 km drive. A
+wrong Hämeenlinna code gets quietly corrected by the map app; no code at all
+does not. If you add a stop yourself on a street the table doesn't know, it
+borrows the code of the stops either side of it in the list — you walk the
+route in order, so your neighbours in the list are your neighbours on the
+ground.
 
 ## Adding the rest of the book
 

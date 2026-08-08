@@ -1395,12 +1395,90 @@ function esc(s){
 }
 function route(){ return DATA.routes.find(r => r.id === DAY.routeId) || DATA.routes[0]; }
 function sid(r, s){ return r.id + ":" + s.k; }
-/* No postcode. One round crosses several — the depot is 13110, Pikkujärventie
-   and Keinukatu are 13200, Katistentie and Idänpääntie are 13210 — and stamping
-   a single one on every address sends map apps a postcode that contradicts the
-   street. Finnish street names are unique within a municipality, so town plus
-   country resolves exactly and cannot be wrong. */
-function fullAddress(s){ return s.street + " " + s.nr + ", " + DATA.city + ", Finland"; }
+/* Postcode per street, because the round crosses three of them.
+
+   Two earlier versions of this got it wrong in opposite directions. Stamping a
+   single 13110 on every address contradicted the street — Google happened to
+   correct it. Dropping the postcode altogether was worse: "Heikkilänkatu 4,
+   Hämeenlinna, Finland" resolved to Heikkilänkatu in VALKEAKOSKI, twenty km
+   away, and turned the last round into a 49 km drive. Finnish street names are
+   unique within a municipality, but a geocoder is free to ignore the
+   municipality, and this one did.
+
+   So every street carries a code. A wrong Hämeenlinna code is self-correcting;
+   no code at all is not. */
+/* Every one of these 31 streets was checked against Finnish postcode sources
+   one at a time — not inferred from a neighbour. The three areas this round
+   crosses: 13110 the depot, 13200 Keinusaari, 13210 Hätilä/Katinen. */
+const POSTCODE = {
+  // 13110 — the depot. The Pomo prints this code itself under JÄTTÖPAIKKA.
+  "Lautatarhankatu":   "13110",
+
+  // 13200 — Keinusaari, the first cluster of the night.
+  "Pikkujärventie":    "13200",
+  "Hilpi Kummilan Tie":"13200",
+  "Korentokatu":       "13200",
+  "Keinukatu":         "13200",
+  "Talaskuja":         "13200",
+  "Wähäjärvenkatu":    "13200",
+  "Salamanteri":       "13200",
+  "Aittatie":          "13200",
+  "Hilpinkuja":        "13200",
+  "Kummilankuja":      "13200",
+
+  // 13210 — Hätilä and Katinen, everything from Katistentie onwards.
+  // Katistentie is split 13210/13250 along its length; every number this
+  // round touches (91–105) sits in the 13210 half.
+  "Katistentie":       "13210",
+  "Raatarinpolku":     "13210",
+  "Hopeapellontie":    "13210",
+  "Idänpääntie":       "13210",
+  "Pokrinniemi":       "13210",
+  "Nuottatie":         "13210",
+  "Verkkotie":         "13210",
+  "Mertapolku":        "13210",
+  "Honkalankatu":      "13210",
+  "Tyllilänkatu":      "13210",
+  "Heikkilänkatu":     "13210",
+  "Liikekatu":         "13210",
+  "Keilakatu":         "13210",
+  "Ortelantie":        "13210",
+  "Hätilänkatu":       "13210",
+  "Viipurintie":       "13210",
+  "Porttiniementie":   "13210",
+  "Myllypellontie":    "13210",
+  "Tarhurintie":       "13210",
+  "Kutalantie":        "13210"
+};
+
+/* A stop you type in yourself under Data will name a street that isn't in the
+   table above, and the whole point of the table is that a bare
+   "street, Hämeenlinna" is what sent Heikkilänkatu to Valkeakoski. So a new
+   street borrows the code of the nearest stop around it that has one — you
+   walk the route in order, so your neighbours in the list are your
+   neighbours on the ground. Recomputed whenever the data changes. */
+let ZIP = Object.create(null);
+
+function resolveZips(){
+  ZIP = Object.create(null);
+  for(const r of (DATA.routes || [])){
+    const stops = r.stops || [];
+    const own = stops.map(s => POSTCODE[s.street] || null);
+    for(let i = 0; i < stops.length; i++){
+      let z = own[i];
+      for(let d = 1; !z && d < stops.length; d++){
+        z = own[i-d] || own[i+d] || null;
+      }
+      ZIP[stops[i].k] = z || "13210";   // last resort: the round's own area
+    }
+  }
+}
+resolveZips();
+
+function fullAddress(s){
+  const zip = ZIP[s.k] || POSTCODE[s.street] || "13210";
+  return s.street + " " + s.nr + ", " + zip + " " + DATA.city + ", Finland";
+}
 
 function hhmmToday(hhmm){
   const [h,m] = hhmm.split(":").map(Number);
@@ -2780,7 +2858,7 @@ document.addEventListener("click", e => {
       apts: parseApts($("#f-apts").value)
     });
     if(r.pagesEntered != null) r.pagesEntered = Math.max(r.pagesEntered, 1);
-    save(K.data, DATA); renderAll();
+    resolveZips(); save(K.data, DATA); renderAll();
     ["f-street","f-nr","f-at","f-next","f-papers","f-apts"].forEach(i => $("#" + i).value = "");
     $("#f-street").focus();
     toast(street + " " + nr + " added");
@@ -2793,7 +2871,7 @@ document.addEventListener("click", e => {
     if(i < 0) return;
     if(!confirm("Remove " + r.stops[i].street + " " + r.stops[i].nr + " from " + r.id + "?")) return;
     r.stops.splice(i, 1);
-    save(K.data, DATA); renderAll(); toast("Removed");
+    resolveZips(); save(K.data, DATA); renderAll(); toast("Removed");
     return;
   }
 
@@ -2815,7 +2893,7 @@ document.addEventListener("click", e => {
     if(!confirm("Replace the routes and notes on this phone with what's in the box?")) return;
     DATA = parsed.data;
     NOTES = parsed.notes || {};
-    save(K.data, DATA); save(K.notes, NOTES);
+    resolveZips(); save(K.data, DATA); save(K.notes, NOTES);
     if(!DATA.routes.some(r => r.id === DAY.routeId)) DAY.routeId = DATA.routes[0].id;
     save(K.day, DAY);
     renderAll(); toast("Loaded");

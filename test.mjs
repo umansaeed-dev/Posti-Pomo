@@ -89,12 +89,65 @@ console.log("\ncore, normal origin");
     if(bad.length) console.log("      unplaceable:", bad.join(", "));
     return bad.length === 0;
   });
-  await t("no address carries a postcode that could contradict its street", async () => {
+  /* The Valkeakoski bug. "Heikkilänkatu 4, Hämeenlinna, Finland" with no
+     postcode resolved to Heikkilänkatu 4, 37600 Valkeakoski — 20 km away, and
+     it turned the last round into a 49 km drive. Street names repeat across
+     Finnish municipalities and a geocoder is free to ignore the town, so every
+     address must carry its own postcode, and that postcode must be one of the
+     three this round actually crosses. */
+  await t("every address on every route carries a Hämeenlinna postcode", async () => {
+    const bad = [];
+    for(const rid of ["1096016","1096017","1096018","1096019","1096020"]){
+      await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+      await p.click(`[data-route="${rid}"]`); await p.waitForTimeout(300);
+      const hrefs = await p.locator("a.wr-g, a.wr-a").evaluateAll(a => a.map(x => x.href));
+      for(const h of hrefs){
+        const url = decodeURIComponent(h);
+        // Pull each address out of the query and check it individually, so a
+        // single good one can't mask a bare neighbour.
+        for(const addr of url.split(/[|+]to:|&|\?/).join("|").split("|")){
+          if(!/Hämeenlinna, Finland/.test(addr)) continue;
+          if(!/\b(13110|13200|13210) Hämeenlinna, Finland/.test(addr)) bad.push(rid + " → " + addr.trim());
+        }
+      }
+    }
+    if(bad.length) console.log("      no postcode:", [...new Set(bad)].slice(0,6).join(" ; "));
+    return bad.length === 0;
+  });
+  await t("no address resolves to another municipality", async () => {
+    const bad = [];
+    for(const rid of ["1096016","1096017","1096018","1096019","1096020"]){
+      await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
+      await p.click(`[data-route="${rid}"]`); await p.waitForTimeout(300);
+      const hrefs = await p.locator("a.wr-g, a.wr-a").evaluateAll(a => a.map(x => x.href));
+      hrefs.forEach(h => {
+        const u = decodeURIComponent(h);
+        // 37600 is Valkeakoski. Anything outside 131xx/132xx is off this round.
+        (u.match(/\b\d{5}\b/g) || []).forEach(z => {
+          if(!/^13(1|2)\d\d$/.test(z)) bad.push(rid + " → " + z);
+        });
+      });
+    }
+    if(bad.length) console.log("      foreign postcode:", [...new Set(bad)].join(", "));
+    return bad.length === 0;
+  });
+  await t("every street in the book has its own looked-up postcode", async () => {
+    const missing = await p.evaluate(() => {
+      const out = [];
+      for(const r of DATA.routes) for(const s of (r.stops || []))
+        if(!POSTCODE[s.street]) out.push(r.id + " → " + s.street);
+      return [...new Set(out)];
+    });
+    if(missing.length) console.log("      streets with no entry:", missing.join(", "));
+    return missing.length === 0;
+  });
+  await t("Heikkilänkatu 4 is the Hämeenlinna one", async () => {
     await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
-    await p.click('[data-route="1096018"]'); await p.waitForTimeout(300);
-    const hrefs = await p.locator("a.wr-g").evaluateAll(a => a.map(x => x.href));
-    // 1096018 is 13210 country; a hardcoded 13110 anywhere means the old bug.
-    return hrefs.every(h => !/131\d\d|132\d\d/.test(decodeURIComponent(h)));
+    await p.click('[data-route="1096020"]'); await p.waitForTimeout(300);
+    const all = (await p.locator("a.wr-g, a.wr-a").evaluateAll(a => a.map(x => x.href)))
+      .map(decodeURIComponent).join(" ");
+    return all.includes("Heikkilänkatu 4, 13210 Hämeenlinna, Finland")
+        && !/37600|Valkeakoski/.test(all);
   });
   await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
   await p.click('[data-route="1096016"]'); await p.waitForTimeout(300);
