@@ -1,0 +1,1292 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05070d">
+<title>Katinen B — Night Run</title>
+
+<style>
+/* ==========================================================================
+   Katinen B — Night Run
+   A one-hand, offline companion for the 00:30–06:30 Posti round in Hämeenlinna.
+   Single file on purpose: it must open from Files, offline, with no network.
+
+   Deliberately single-theme. This tool is only ever used between midnight and
+   half six; a light theme would be a hazard, not a feature. Every colour is
+   painted explicitly so the page holds on any host background.
+   ========================================================================== */
+
+:root{
+  /* night ink — near-black with a blue bias, the colour of the sky at 01:00 */
+  --ink:#05070d;
+  --surface:#0e1420;
+  --surface-2:#161e2e;
+  --surface-3:#1e2839;
+  --line:#26314a;
+  --line-soft:#1a2233;
+  --text:#e8edf7;
+  --muted:#8c9ab6;        /* grey pulled toward the ground, not neutral */
+  --dim:#5d6a86;
+
+  --accent:#ff8200;       /* Posti orange — the only accent, spent sparingly */
+  --accent-ink:#2a1400;
+  --accent-soft:#3a2409;
+
+  --good:#3ddc97;
+  --good-ink:#04231a;
+  --warn:#ffcc4d;
+  --late:#ff5d5d;
+
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+
+  --pad:14px;
+  --r:14px;
+  --bar:78px;             /* fixed action bar height, reserved at page bottom */
+}
+
+/* Amber night-vision mode: no blue at all, for eyes adjusted to the dark. */
+:root[data-mode="amber"]{
+  --ink:#000000;
+  --surface:#0d0803;
+  --surface-2:#160e04;
+  --surface-3:#1f1406;
+  --line:#3a2408;
+  --line-soft:#241705;
+  --text:#ffb454;
+  --muted:#a3712c;
+  --dim:#6d4c1d;
+  --accent:#ff7b00;
+  --accent-ink:#180a00;
+  --accent-soft:#3a1c00;
+  --good:#ffa62b;
+  --good-ink:#180a00;
+  --warn:#ffc46b;
+  --late:#ff6a2b;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.45;
+  -webkit-text-size-adjust:100%;
+  overscroll-behavior-y:none;
+}
+
+/* dimmer veil — glare control at 3am, never intercepts touches */
+#veil{
+  position:fixed;inset:0;background:#000;opacity:0;
+  pointer-events:none;z-index:90;transition:opacity .2s;
+}
+
+.app{max-width:520px;margin:0 auto;padding:0 0 calc(var(--bar) + env(safe-area-inset-bottom,0px) + 18px)}
+
+/* ---------- mission control ---------------------------------------------- */
+
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:var(--ink);
+  border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top,0px) + 10px) var(--pad) 0;
+}
+.tb-row{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:baseline;gap:8px;min-width:0;flex:1}
+.brand .area{font-weight:800;font-size:17px;letter-spacing:-.01em;white-space:nowrap}
+.brand .rid{
+  font-family:var(--mono);font-size:12px;color:var(--accent);
+  background:var(--accent-soft);border:1px solid var(--accent);
+  padding:1px 7px;border-radius:999px;font-variant-numeric:tabular-nums;
+}
+.clock{font-family:var(--mono);font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+.tb-meta{display:flex;align-items:center;gap:8px;margin:8px 0 10px;flex-wrap:wrap}
+.chip{
+  font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.02em;
+  padding:3px 8px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface-2);color:var(--muted);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.chip.ok{color:var(--good);border-color:var(--good);background:transparent}
+.chip.warn{color:var(--warn);border-color:var(--warn);background:transparent}
+.chip.late{color:var(--late);border-color:var(--late);background:transparent}
+.chip.accent{color:var(--accent);border-color:var(--accent);background:transparent}
+
+.bar{height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-bottom:10px}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .25s}
+.bar.complete > i{background:var(--good)}
+
+/* ---------- tabs ---------------------------------------------------------- */
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);background:var(--ink)}
+.tabs button{
+  flex:1;appearance:none;background:none;border:0;border-bottom:2px solid transparent;
+  color:var(--dim);font-family:var(--sans);font-size:13px;font-weight:700;
+  padding:11px 4px;cursor:pointer;letter-spacing:.02em;
+}
+.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.pane{padding:var(--pad);display:flex;flex-direction:column;gap:12px}
+.pane[hidden]{display:none}
+
+/* ---------- stop cards ---------------------------------------------------- */
+
+.stop{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+.stop.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.stop.done{background:transparent;border-color:var(--line-soft)}
+
+.leg{
+  display:flex;gap:9px;align-items:flex-start;
+  padding:11px 13px;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--line-soft);
+  font-size:14.5px;color:var(--muted);
+}
+.stop.current .leg{color:var(--text)}
+.leg .ico{color:var(--accent);font-weight:800;flex:0 0 auto;line-height:1.45}
+
+.head{display:flex;align-items:flex-start;gap:11px;padding:13px}
+.seq{
+  flex:0 0 auto;width:30px;height:30px;border-radius:50%;
+  background:var(--surface-3);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:13px;font-weight:700;margin-top:3px;
+}
+.stop.current .seq{background:var(--accent);color:var(--accent-ink)}
+.stop.done .seq{background:transparent;border:1px solid var(--good);color:var(--good)}
+
+.addr{flex:1;min-width:0}
+.street{font-size:15px;color:var(--muted);letter-spacing:.01em}
+.stop.current .street{color:var(--text)}
+.nr{
+  font-size:33px;font-weight:800;letter-spacing:-.035em;line-height:1.05;
+  display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;
+}
+.stop.done .nr{font-size:22px;color:var(--dim)}
+.stop.done .street{font-size:13px}
+.badge{
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:3px 7px;border-radius:5px;
+  background:var(--accent);color:var(--accent-ink);position:relative;top:-4px;
+}
+.badge.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+
+.tick{
+  flex:0 0 auto;width:46px;height:46px;border-radius:12px;
+  border:2px solid var(--line);background:transparent;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:23px;font-weight:800;color:transparent;
+}
+.tick:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stop.done .tick{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+
+.body{padding:0 13px 13px;display:flex;flex-direction:column;gap:11px}
+.stop.done .body{display:none}
+
+.door{
+  font-size:15.5px;line-height:1.5;
+  border-left:3px solid var(--accent);padding:2px 0 2px 11px;color:var(--text);
+}
+.door b{color:var(--accent);font-size:10.5px;font-family:var(--mono);letter-spacing:.09em;
+  text-transform:uppercase;display:block;margin-bottom:2px;font-weight:700}
+
+.papers{display:flex;flex-wrap:wrap;gap:6px}
+.p{
+  font-family:var(--mono);font-size:12.5px;font-weight:700;
+  padding:4px 9px;border-radius:7px;background:var(--surface-3);
+  border:1px solid var(--line);font-variant-numeric:tabular-nums;
+}
+.p.hs{color:#ffd08a;border-color:#7a5a20;background:#2a1c07}
+.p.hasa{color:#9cc4ff;border-color:#2a4a7a;background:#0b1d33}
+.p.mt{color:#8fe0b0;border-color:#245a3a;background:#082214}
+.p.vko,.p.tco{color:#e0a8ff;border-color:#552a7a;background:#1c0a29}
+:root[data-mode="amber"] .p,
+:root[data-mode="amber"] .p.hs,
+:root[data-mode="amber"] .p.hasa,
+:root[data-mode="amber"] .p.mt,
+:root[data-mode="amber"] .p.vko,
+:root[data-mode="amber"] .p.tco{
+  color:var(--text);background:var(--surface-3);border-color:var(--line);
+}
+
+/* apartments */
+.apts{border:1px solid var(--line);border-radius:11px;background:var(--surface-2);overflow:hidden}
+.apts > summary{
+  cursor:pointer;list-style:none;padding:11px 12px;
+  font-size:13px;font-weight:700;color:var(--muted);
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.apts > summary::-webkit-details-marker{display:none}
+.apts > summary::after{content:"▾";color:var(--dim)}
+.apts[open] > summary{color:var(--text);border-bottom:1px solid var(--line-soft)}
+.apts[open] > summary::after{content:"▴"}
+.apt-wrap{padding:4px 12px 10px}
+.floor{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);padding:11px 0 5px;
+}
+.apt{
+  display:flex;align-items:center;gap:10px;padding:9px 0;
+  border-top:1px solid var(--line-soft);
+}
+.apt .id{font-family:var(--mono);font-size:16px;font-weight:700;width:52px;font-variant-numeric:tabular-nums}
+.apt .pp{flex:1;display:flex;gap:5px;flex-wrap:wrap}
+.apt .abox{
+  width:34px;height:34px;border-radius:8px;border:2px solid var(--line);
+  background:transparent;cursor:pointer;color:transparent;font-weight:800;font-size:17px;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.apt.on .abox{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+.apt.on .id{color:var(--dim);text-decoration:line-through}
+.apt.empty{opacity:.4}
+.apt.empty .abox{display:none}
+
+/* my notes */
+.mine{display:flex;flex-direction:column;gap:6px}
+.mine label{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);
+}
+.mine textarea{
+  width:100%;min-height:46px;resize:vertical;
+  background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;
+  color:var(--text);font-family:var(--sans);font-size:15px;padding:9px 11px;line-height:1.4;
+}
+.mine textarea:focus{outline:none;border-style:solid;border-color:var(--accent)}
+.mine textarea::placeholder{color:var(--dim)}
+
+.navrow{display:flex;gap:8px}
+.navrow a{
+  flex:1;text-align:center;text-decoration:none;
+  background:var(--surface-3);color:var(--text);border:1px solid var(--line);
+  border-radius:11px;padding:12px 8px;font-size:14px;font-weight:700;
+}
+.navrow a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.navrow a.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+.avg{font-family:var(--mono);font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+
+/* ---------- notices, empties --------------------------------------------- */
+
+.note{
+  border:1px solid var(--line);border-left:3px solid var(--accent);
+  background:var(--surface);border-radius:0 var(--r) var(--r) 0;
+  padding:12px 14px;font-size:14px;line-height:1.5;color:var(--muted);
+}
+.note b{color:var(--text)}
+.note.warn{border-left-color:var(--warn)}
+.empty{
+  border:1px dashed var(--line);border-radius:var(--r);
+  padding:22px 16px;text-align:center;color:var(--muted);font-size:14.5px;line-height:1.55;
+}
+
+/* ---------- generic controls --------------------------------------------- */
+
+.btn{
+  appearance:none;border:1px solid var(--line);background:var(--surface-3);
+  color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;
+  padding:12px 14px;border-radius:11px;cursor:pointer;
+}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--late);border-color:var(--late);background:transparent}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row .btn{flex:1;min-width:120px}
+
+input[type=text],textarea,select{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+  color:var(--text);font-family:var(--sans);font-size:16px;padding:11px 12px;width:100%;
+}
+input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+textarea.code{font-family:var(--mono);font-size:13px;line-height:1.5;min-height:280px}
+
+.field{display:flex;flex-direction:column;gap:5px}
+.field > span{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);
+}
+.field small{color:var(--dim);font-size:12px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:11px}
+.card h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.card h3 .sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);font-weight:600;margin-left:7px}
+
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line-soft);font-size:14px}
+.kv:first-of-type{border-top:0}
+.kv .k{color:var(--muted)}
+.kv .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700}
+
+.route-row{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:13px;cursor:pointer;color:var(--text);font-family:var(--sans);
+}
+.route-row.active{border-color:var(--accent)}
+.route-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.route-row .win{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.3}
+.route-row .id{font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.02em;flex:1}
+.route-row .cnt{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right;line-height:1.35}
+
+dl.gloss{margin:0;display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:14.5px;align-items:baseline}
+dl.gloss dt{font-weight:700;color:var(--accent);font-size:14px}
+dl.gloss dd{margin:0;color:var(--muted)}
+
+ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:9px;font-size:14.5px;line-height:1.55;color:var(--muted)}
+ol.steps b{color:var(--text)}
+ul.plain{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:7px;font-size:14.5px;line-height:1.5;color:var(--muted)}
+ul.plain b{color:var(--text)}
+
+.slider{display:flex;align-items:center;gap:11px}
+.slider input[type=range]{flex:1;accent-color:var(--accent)}
+.slider span{font-family:var(--mono);font-size:11.5px;color:var(--dim);width:74px}
+
+/* ---------- fixed action bar --------------------------------------------- */
+
+.actionbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:linear-gradient(to top,var(--ink) 62%,transparent);
+  padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom,0px));
+  display:flex;justify-content:center;pointer-events:none;
+}
+.actionbar > div{width:100%;max-width:520px;display:flex;gap:9px;pointer-events:auto}
+.big{
+  flex:1;appearance:none;border:0;border-radius:14px;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);
+  font-family:var(--sans);font-size:17px;font-weight:800;letter-spacing:-.01em;
+  padding:17px 14px;min-height:56px;
+  display:flex;align-items:center;justify-content:center;gap:9px;text-align:center;
+}
+.big:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.big.finish{background:var(--good);color:var(--good-ink)}
+.big[disabled]{background:var(--surface-3);color:var(--dim);cursor:default}
+.big .small{font-family:var(--mono);font-size:12px;font-weight:700;opacity:.8}
+.undo{
+  flex:0 0 auto;width:56px;border:1px solid var(--line);background:var(--surface-2);
+  color:var(--text);border-radius:14px;font-size:19px;cursor:pointer;
+}
+.undo:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.undo[disabled]{color:var(--dim);cursor:default}
+
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--bar) + env(safe-area-inset-bottom,0px) + 22px);
+  background:var(--surface-3);border:1px solid var(--line);color:var(--text);
+  padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;
+  z-index:80;opacity:0;transition:opacity .18s;pointer-events:none;max-width:90vw;text-align:center;
+}
+.toast.show{opacity:1}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important;scroll-behavior:auto !important}
+}
+</style>
+
+<div id="veil"></div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="tb-row">
+      <div class="brand">
+        <span class="area">Katinen B</span>
+        <span class="rid" id="hdrRoute">—</span>
+      </div>
+      <div class="clock" id="clock">--:--</div>
+    </div>
+    <div class="tb-meta" id="hdrMeta"></div>
+    <div class="bar" id="hdrBar"><i style="width:0%"></i></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true"  data-pane="run">Run</button>
+      <button role="tab" aria-selected="false" data-pane="routes">Routes</button>
+      <button role="tab" aria-selected="false" data-pane="data">Data</button>
+      <button role="tab" aria-selected="false" data-pane="help">Help</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="pane" id="pane-run"></section>
+    <section class="pane" id="pane-routes" hidden></section>
+    <section class="pane" id="pane-data" hidden></section>
+    <section class="pane" id="pane-help" hidden></section>
+  </main>
+</div>
+
+<div class="actionbar">
+  <div>
+    <button class="undo" id="undoBtn" title="Undo last tick" disabled>↺</button>
+    <button class="big" id="bigBtn">Start route</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   1. SEED DATA
+   Transcribed from the Pomo delivery book, route 1096016, Preview page 1/4
+   (photos of 07.08.2026). Routes 17–20 are placeholders until entered.
+
+   Reading the Pomo book: the highlighted box holds the house number and the
+   at-the-door instruction; the text UNDER the box is the driving instruction
+   to the NEXT address. So each stop stores `at` and `next` separately, and a
+   stop's card shows the previous stop's `next` as "getting here".
+   ========================================================================= */
+
+const SEED = {
+  area: "Katinen B",
+  city: "Hämeenlinna",
+  zip: "13110",
+  depot: "Lautatarhankatu 5",
+  shiftStart: "00:30",
+  serviceLevel: "06:30",
+  routes: [
+    {
+      id: "1096016", from: "00:50", to: "01:43",
+      pagesTotal: 4, pagesEntered: 1,
+      totals: { HS:10, HASA:43, TCO:3, MT:1, VKO:1 },
+      stops: [
+        { k:"s1", street:"Lautatarhankatu", nr:"5", tag:"START",
+          at:"Posti yard. Keys for all five routes are here — take them before you load.",
+          next:"Left out of the Posti yard → Vanajantie → straight on to Keinusaarentie → right on Pikkujärventie → left into Talaskuja.",
+          papers:{}, apts:[] },
+
+        { k:"s2", street:"Talaskuja", nr:"1",
+          at:"Metal mailbox in the BACK YARD, on the right-hand side of the loading-bay doors. Sundays: HASA bundle goes to K-Market.",
+          next:"Carry on into the parking area, right to the far end.",
+          papers:{}, apts:[] },
+
+        { k:"s3", street:"Talaskuja", nr:"3",
+          at:"",
+          next:"Back out, right then left, to the end of the road. Mailbox row is on the wall beside the door.",
+          papers:{ MT:1, TCO:1 }, apts:[] },
+
+        { k:"s4", street:"Wähäjärvenkatu", nr:"6",
+          at:"Mailbox row on the wall next to the door.",
+          next:"Back onto Wähäjärvenkatu, then right between the houses into the courtyard.",
+          papers:{}, apts:[] },
+
+        { k:"s5", street:"Wähäjärvenkatu", nr:"5",
+          at:"Stairwell A, flats A1–A18. Only 7 doors take a paper.",
+          next:"",
+          papers:{ HS:4, HASA:5, VKO:1 },
+          apts:[
+            { f:"1st floor", list:[ ["A3",[]], ["A2",["HS","HASA"]], ["A1",["HASA"]] ] },
+            { f:"4th floor", list:[ ["A18",[]], ["A17",[]], ["A16",["VKO"]], ["A15",[]], ["A14",["HASA"]] ] },
+            { f:"3rd floor", list:[ ["A13",[]], ["A12",[]], ["A11",[]], ["A10",[]], ["A9",["HS","HASA"]] ] },
+            { f:"2nd floor", list:[ ["A8",["HS","HASA"]], ["A7",[]], ["A6",[]], ["A5",["HS"]], ["A4",[]] ] }
+          ] },
+
+        { k:"s6", street:"Wähäjärvenkatu", nr:"3",
+          at:"Stairwell A. 8 × HASA in this building.",
+          next:"",
+          papers:{ HASA:8 },
+          flag:"Flat list is incomplete — the 2nd-floor rows were cut off in the photo. 6 of the 8 HASA are accounted for, so 2 more sit on the 2nd floor. Check the Pomo and fill them in.",
+          apts:[
+            { f:"1st floor", list:[ ["A3",["HASA"]], ["A2",[]], ["A1",[]] ] },
+            { f:"4th floor", list:[ ["A18",[]], ["A17",["HASA"]], ["A16",["HASA"]], ["A15",[]], ["A14",["HASA"]] ] },
+            { f:"3rd floor", list:[ ["A13",["HASA"]], ["A12",[]], ["A11",[]], ["A10",["HASA"]] ] }
+          ] }
+      ]
+    },
+    { id:"1096017", from:"01:44", to:"02:45", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
+    { id:"1096018", from:"02:47", to:"03:43", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
+    { id:"1096019", from:"03:45", to:"04:59", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] },
+    { id:"1096020", from:"05:00", to:"06:03", pagesTotal:null, pagesEntered:0, totals:{}, stops:[] }
+  ]
+};
+
+const PAPER_NAMES = {
+  HS:"Helsingin Sanomat",
+  HASA:"Hämeen Sanomat",
+  MT:"Maaseudun Tulevaisuus",
+  VKO:"weekly title — confirm with your supervisor",
+  TCO:"confirm with your supervisor"
+};
+
+/* =========================================================================
+   2. STORAGE
+   Two lifetimes, kept apart on purpose:
+     permanent — route data, your own door notes, your stop timings
+     daily     — which stops are ticked (wiped when the date rolls over)
+   ========================================================================= */
+
+const K = { data:"pp.data.v1", notes:"pp.notes.v1", times:"pp.times.v1", day:"pp.day.v1", prefs:"pp.prefs.v1" };
+
+function clone(v){ return v == null ? v : JSON.parse(JSON.stringify(v)); }
+
+function load(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : clone(fallback);
+  }catch(e){ return clone(fallback); }
+}
+function save(key, val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); }
+  catch(e){ toast("Couldn't save — phone storage is full or blocked"); }
+}
+
+function todayKey(){
+  // The shift runs 00:30–06:30, so the calendar date never splits a round.
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+let DATA  = load(K.data, SEED);
+let NOTES = load(K.notes, {});
+let TIMES = load(K.times, {});
+let PREFS = load(K.prefs, { mode:"night", dim:0, onlyPapers:true });
+let DAY   = load(K.day, null);
+
+if(!DAY || DAY.date !== todayKey()){
+  DAY = { date:todayKey(), routeId:DATA.routes[0].id, startedAt:null, lastAt:null, done:{}, apt:{}, history:[] };
+  save(K.day, DAY);
+}
+if(!DATA.routes.some(r => r.id === DAY.routeId)) DAY.routeId = DATA.routes[0].id;
+
+/* =========================================================================
+   3. HELPERS
+   ========================================================================= */
+
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function route(){ return DATA.routes.find(r => r.id === DAY.routeId) || DATA.routes[0]; }
+function sid(r, s){ return r.id + ":" + s.k; }
+function fullAddress(s){ return s.street + " " + s.nr + ", " + DATA.zip + " " + DATA.city; }
+
+function hhmmToday(hhmm){
+  const [h,m] = hhmm.split(":").map(Number);
+  const d = new Date(); d.setHours(h, m, 0, 0);
+  return d;
+}
+function fmtClock(d){
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+function fmtDur(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60), s = sec%60;
+  return m >= 60 ? Math.floor(m/60) + "h" + String(m%60).padStart(2,"0") : m + ":" + String(s).padStart(2,"0");
+}
+function fmtSigned(min){
+  const r = Math.round(min);
+  return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r) + " min";
+}
+function sumPapers(list){
+  const out = {};
+  for(const p of list) for(const [k,v] of Object.entries(p||{})) out[k] = (out[k]||0) + v;
+  return out;
+}
+function countPapers(p){ return Object.values(p||{}).reduce((a,b)=>a+b, 0); }
+function papersLine(p){
+  const e = Object.entries(p||{}).filter(([,v]) => v > 0);
+  if(!e.length) return "";
+  return e.map(([k,v]) => k + " " + v).join("  ");
+}
+
+let toastTimer;
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function mapsDir(addr){
+  return "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(addr) + "&travelmode=driving";
+}
+function mapsSearch(addr){
+  return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr);
+}
+function mapsWholeRoute(r){
+  const stops = r.stops;
+  if(stops.length < 2) return null;
+  const origin = encodeURIComponent(fullAddress(stops[0]));
+  const dest   = encodeURIComponent(fullAddress(stops[stops.length-1]));
+  // Google caps waypoints; keep the first nine intermediates and say so.
+  const mid = stops.slice(1, -1).slice(0, 9).map(s => encodeURIComponent(fullAddress(s))).join("|");
+  return "https://www.google.com/maps/dir/?api=1&origin=" + origin +
+         "&destination=" + dest + (mid ? "&waypoints=" + mid : "") + "&travelmode=driving";
+}
+
+/* =========================================================================
+   4. PROGRESS + PACE
+   ========================================================================= */
+
+function firstUndoneIndex(r){
+  for(let i = 0; i < r.stops.length; i++) if(!DAY.done[sid(r, r.stops[i])]) return i;
+  return -1;
+}
+
+function progress(){
+  const r = route();
+  const total = r.stops.length;
+  const done  = r.stops.filter(s => DAY.done[sid(r, s)]).length;
+  return { r, total, done, pct: total ? Math.round(done/total*100) : 0 };
+}
+
+function pace(){
+  const { r, total, done } = progress();
+  const winStart = hhmmToday(r.from), winEnd = hhmmToday(r.to);
+  const windowMin = (winEnd - winStart) / 60000;
+  if(!total) return { state:"none", windowMin };
+  if(!DAY.startedAt || !done) return { state:"idle", windowMin };
+
+  const started = new Date(DAY.startedAt);
+  const elapsedMin = (Date.now() - started) / 60000;
+  const frac = done / total;
+  const projectedMin = elapsedMin / frac;
+  const finish = new Date(started.getTime() + projectedMin*60000);
+  // Measured against how long the window IS, not when it ends — starting late
+  // shouldn't make the pace chip scream, and it keeps the number meaningful
+  // if you practise the round in the afternoon.
+  const deltaMin = projectedMin - windowMin;
+
+  return {
+    state: deltaMin <= 0 ? "ok" : deltaMin <= 5 ? "warn" : "late",
+    windowMin, elapsedMin, projectedMin, finish, deltaMin,
+    perStopMin: elapsedMin / done,
+    remainMin: projectedMin - elapsedMin
+  };
+}
+
+/* Papers still in the bag for this route, from stops not yet ticked. */
+function papersLeft(r){
+  return sumPapers(r.stops.filter(s => !DAY.done[sid(r, s)]).map(s => s.papers));
+}
+/* Difference between the Pomo's route totals and what's been entered. */
+function unaccounted(r){
+  const entered = sumPapers(r.stops.map(s => s.papers));
+  const out = {};
+  for(const [k,v] of Object.entries(r.totals||{})){
+    const diff = v - (entered[k]||0);
+    if(diff > 0) out[k] = diff;
+  }
+  return out;
+}
+
+/* =========================================================================
+   5. HEADER
+   ========================================================================= */
+
+function renderHeader(){
+  const { r, total, done, pct } = progress();
+  $("#hdrRoute").textContent = r.id;
+  $("#clock").textContent = fmtClock(new Date());
+
+  const p = pace();
+  const chips = [];
+  chips.push('<span class="chip">' + r.from + "–" + r.to + "</span>");
+  chips.push('<span class="chip' + (total && done === total ? " ok" : "") + '">' + done + "/" + total + " stops</span>");
+
+  const left = countPapers(papersLeft(r));
+  if(left) chips.push('<span class="chip accent">' + left + " papers left</span>");
+
+  if(p.state === "ok" || p.state === "warn" || p.state === "late"){
+    const label = p.deltaMin <= 0
+      ? "on time · finish ~" + fmtClock(p.finish)
+      : fmtSigned(p.deltaMin) + " over · ~" + fmtClock(p.finish);
+    chips.push('<span class="chip ' + p.state + '">' + label + "</span>");
+  }else if(DAY.startedAt){
+    chips.push('<span class="chip">running ' + fmtDur((Date.now() - new Date(DAY.startedAt))/1000) + "</span>");
+  }
+
+  $("#hdrMeta").innerHTML = chips.join("");
+  const bar = $("#hdrBar");
+  bar.classList.toggle("complete", total > 0 && done === total);
+  bar.firstElementChild.style.width = pct + "%";
+}
+
+function renderActionBar(){
+  const { r, total, done } = progress();
+  const btn = $("#bigBtn"), undo = $("#undoBtn");
+  undo.disabled = !(DAY.history && DAY.history.length);
+
+  btn.classList.remove("finish");
+  if(!total){
+    btn.disabled = true;
+    btn.innerHTML = "No stops in " + r.id + " yet";
+    return;
+  }
+  btn.disabled = false;
+  if(done === total){
+    btn.classList.add("finish");
+    btn.innerHTML = "Route " + r.id + " complete ✓";
+    return;
+  }
+  const i = firstUndoneIndex(r);
+  const s = r.stops[i];
+  if(!DAY.startedAt){
+    btn.innerHTML = "Start route <span class=\"small\">" + esc(s.street + " " + s.nr) + "</span>";
+  }else{
+    btn.innerHTML = "Delivered <span class=\"small\">" + esc(s.street + " " + s.nr) + "</span>";
+  }
+}
+
+/* =========================================================================
+   6. RUN PANE — the screen he actually uses at 01:00
+   ========================================================================= */
+
+function renderRun(){
+  const r = route();
+  const pane = $("#pane-run");
+  const cur = firstUndoneIndex(r);
+  const parts = [];
+
+  if(!r.stops.length){
+    parts.push(
+      '<div class="empty"><b style="color:var(--text)">Route ' + r.id + " has no stops yet.</b><br>" +
+      "Open the Pomo, tap <b>Preview</b> on this route, and add the addresses under the " +
+      "<b>Data</b> tab. Do it at home in daylight, not in the car.</div>"
+    );
+    pane.innerHTML = parts.join("");
+    return;
+  }
+
+  // Honest warning when the book is only partly transcribed.
+  if(r.pagesTotal && r.pagesEntered < r.pagesTotal){
+    parts.push(
+      '<div class="note warn"><b>Page ' + r.pagesEntered + " of " + r.pagesTotal +
+      " entered.</b> The stops below are only the start of this route, so the pace " +
+      "estimate will look far too good. Add the remaining pages under <b>Data</b>.</div>"
+    );
+  }
+  const un = unaccounted(r);
+  if(Object.keys(un).length){
+    parts.push(
+      '<div class="note"><b>' + countPapers(un) + " papers not yet placed:</b> " +
+      esc(papersLine(un)) + ". The Pomo says the route carries " + esc(papersLine(r.totals)) +
+      "; the stops entered here account for the rest.</div>"
+    );
+  }
+
+  r.stops.forEach((s, i) => {
+    const id = sid(r, s);
+    const isDone = !!DAY.done[id];
+    const isCur  = i === cur;
+    const prev   = i > 0 ? r.stops[i-1] : null;
+    const cls    = "stop" + (isDone ? " done" : "") + (isCur ? " current" : "");
+    const b = [];
+
+    b.push('<article class="' + cls + '" id="stop-' + esc(id) + '">');
+
+    // getting here — the previous stop's driving instruction
+    if(prev && prev.next && !isDone){
+      b.push('<div class="leg"><span class="ico">↳</span><span>' + esc(prev.next) + "</span></div>");
+    }
+
+    b.push('<div class="head">');
+    b.push('<div class="seq">' + (i+1) + "</div>");
+    b.push('<div class="addr">');
+    b.push('<div class="street">' + esc(s.street) + "</div>");
+    b.push('<div class="nr">' + esc(s.nr));
+    if(s.tag) b.push('<span class="badge">' + esc(s.tag) + "</span>");
+    if(isCur && !s.tag) b.push('<span class="badge">Next</span>');
+    b.push("</div></div>");
+    b.push('<button class="tick" data-tick="' + esc(id) + '" aria-label="Mark ' +
+           esc(s.street + " " + s.nr) + ' delivered">✓</button>');
+    b.push("</div>");
+
+    b.push('<div class="body">');
+
+    if(countPapers(s.papers)){
+      b.push('<div class="papers">' + Object.entries(s.papers)
+        .filter(([,v]) => v > 0)
+        .map(([k,v]) => '<span class="p ' + k.toLowerCase() + '">' + esc(k) + " " + v + "</span>")
+        .join("") + "</div>");
+    }
+
+    if(s.at) b.push('<div class="door"><b>At the door</b>' + esc(s.at) + "</div>");
+    if(s.flag) b.push('<div class="note warn">' + esc(s.flag) + "</div>");
+
+    if(s.apts && s.apts.length) b.push(renderApts(r, s, id));
+
+    // personal note — the part that compounds over the weeks
+    b.push('<div class="mine"><label for="n-' + esc(id) + '">My note — door code, bin shed, dog, ice</label>' +
+           '<textarea id="n-' + esc(id) + '" data-note="' + esc(id) + '" placeholder="Add what you learned here tonight…">' +
+           esc(NOTES[id] || "") + "</textarea></div>");
+
+    const addr = fullAddress(s);
+    b.push('<div class="navrow">' +
+      '<a class="pri" href="' + esc(mapsDir(addr)) + '" target="_blank" rel="noopener">Navigate</a>' +
+      '<a href="' + esc(mapsSearch(addr)) + '" target="_blank" rel="noopener">Map / Street View</a>' +
+      "</div>");
+
+    const t = TIMES[id];
+    if(t && t.length){
+      const avg = t.reduce((a,b2)=>a+b2, 0) / t.length;
+      b.push('<div class="avg">Your average here: ' + fmtDur(avg) + " over " + t.length + " run" + (t.length>1?"s":"") + "</div>");
+    }
+
+    b.push("</div></article>");
+    parts.push(b.join(""));
+  });
+
+  const whole = mapsWholeRoute(r);
+  if(whole){
+    parts.push('<div class="navrow"><a href="' + esc(whole) + '" target="_blank" rel="noopener">' +
+      "Open the whole route in Google Maps" + (r.stops.length > 11 ? " (first 11 stops)" : "") + "</a></div>");
+  }
+
+  pane.innerHTML = parts.join("");
+}
+
+function renderApts(r, s, id){
+  const only = PREFS.onlyPapers;
+  const total = s.apts.reduce((a, f) => a + f.list.length, 0);
+  const withP = s.apts.reduce((a, f) => a + f.list.filter(x => x[1].length).length, 0);
+  const doneN = s.apts.reduce((a, f) => a + f.list.filter(x => x[1].length && DAY.apt[id + "|" + x[0]]).length, 0);
+
+  const b = [];
+  b.push('<details class="apts"' + (withP ? " open" : "") + ">");
+  b.push("<summary><span>Flats — <b>" + withP + " of " + total + "</b> get a paper" +
+         (withP ? " · " + doneN + "/" + withP + " done" : "") + "</span></summary>");
+  b.push('<div class="apt-wrap">');
+  b.push('<div class="btn-row" style="margin-top:8px"><button class="btn ghost" data-toggle-only="1">' +
+         (only ? "Show all " + total + " flats" : "Show only the " + withP + " with papers") + "</button></div>");
+
+  for(const f of s.apts){
+    const list = only ? f.list.filter(x => x[1].length) : f.list;
+    if(!list.length) continue;
+    b.push('<div class="floor">' + esc(f.f) + "</div>");
+    for(const [aid, papers] of list){
+      const key = id + "|" + aid;
+      const has = papers.length > 0;
+      const on = has && DAY.apt[key];
+      b.push('<div class="apt' + (has ? "" : " empty") + (on ? " on" : "") + '">');
+      b.push('<span class="id">' + esc(aid) + "</span>");
+      b.push('<span class="pp">' + papers.map(p => '<span class="p ' + p.toLowerCase() + '">' + esc(p) + "</span>").join("") + "</span>");
+      if(has) b.push('<button class="abox" data-apt="' + esc(key) + '" aria-label="Mark flat ' + esc(aid) + ' delivered">✓</button>');
+      b.push("</div>");
+    }
+  }
+  b.push("</div></details>");
+  return b.join("");
+}
+
+/* =========================================================================
+   7. ROUTES PANE
+   ========================================================================= */
+
+function renderRoutes(){
+  const parts = [];
+  parts.push('<div class="note"><b>Depot &amp; keys:</b> ' + esc(DATA.depot) + ", " + esc(DATA.zip + " " + DATA.city) +
+    ". Keys for all five routes are in the yard. Shift " + esc(DATA.shiftStart) +
+    ", everything on doorsteps by <b>" + esc(DATA.serviceLevel) + "</b>.</div>");
+
+  for(const r of DATA.routes){
+    const total = r.stops.length;
+    const done  = r.id === DAY.routeId ? r.stops.filter(s => DAY.done[sid(r, s)]).length : 0;
+    const papers = countPapers(r.totals) || countPapers(sumPapers(r.stops.map(s => s.papers)));
+    parts.push(
+      '<button class="route-row' + (r.id === DAY.routeId ? " active" : "") + '" data-route="' + esc(r.id) + '">' +
+        '<span class="win">' + esc(r.from) + "<br>" + esc(r.to) + "</span>" +
+        '<span class="id">' + esc(r.id) + "</span>" +
+        '<span class="cnt">' + (total ? total + " stops" : "no stops") +
+          (r.id === DAY.routeId && total ? "<br>" + done + " done" : (papers ? "<br>" + papers + " papers" : "")) +
+        "</span>" +
+      "</button>"
+    );
+  }
+
+  parts.push('<div class="card"><h3>Tonight</h3>' + renderDayStats() + "</div>");
+  parts.push('<div class="card"><h3>Screen</h3>' +
+    '<div class="btn-row">' +
+      '<button class="btn" data-mode-toggle="1">' + (PREFS.mode === "amber" ? "Back to night blue" : "Amber night-vision") + "</button>" +
+    "</div>" +
+    '<div class="slider"><span>Brightness</span><input type="range" id="dim" min="0" max="70" step="5" value="' + (PREFS.dim||0) + '"><span id="dimv">' + (100 - (PREFS.dim||0)) + "%</span></div>" +
+    "</div>");
+
+  parts.push('<div class="card"><h3>Reset</h3>' +
+    '<p style="margin:0;color:var(--muted);font-size:14px;line-height:1.5">Ticks clear on their own when the date changes. Your door notes and timings are never touched by this.</p>' +
+    '<div class="btn-row"><button class="btn danger" data-clear-day="1">Clear tonight’s ticks</button></div></div>');
+
+  $("#pane-routes").innerHTML = parts.join("");
+  const dim = $("#dim");
+  if(dim) dim.addEventListener("input", e => {
+    PREFS.dim = +e.target.value; save(K.prefs, PREFS);
+    $("#veil").style.opacity = PREFS.dim/100;
+    $("#dimv").textContent = (100 - PREFS.dim) + "%";
+  });
+}
+
+function renderDayStats(){
+  const r = route();
+  const { total, done } = progress();
+  const p = pace();
+  const rows = [];
+  rows.push(kv("Route", r.id));
+  rows.push(kv("Window", r.from + "–" + r.to + "  (" + Math.round(p.windowMin) + " min)"));
+  rows.push(kv("Started", DAY.startedAt ? fmtClock(new Date(DAY.startedAt)) : "—"));
+  rows.push(kv("Stops", done + " / " + total));
+  if(p.state === "ok" || p.state === "warn" || p.state === "late"){
+    rows.push(kv("Average per stop", fmtDur(p.perStopMin*60)));
+    rows.push(kv("Projected finish", fmtClock(p.finish) + "  (" + fmtSigned(p.deltaMin) + ")"));
+    rows.push(kv("Time left at this pace", fmtDur(p.remainMin*60)));
+  }
+  const left = papersLeft(r);
+  rows.push(kv("Papers still in the bag", countPapers(left) ? papersLine(left) : "none"));
+  return rows.join("");
+}
+function kv(k, v){
+  return '<div class="kv"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v) + "</span></div>";
+}
+
+/* =========================================================================
+   8. DATA PANE — how the remaining pages get in without me
+   ========================================================================= */
+
+function renderData(){
+  const r = route();
+  const parts = [];
+
+  parts.push('<div class="note"><b>Adding the rest of the book.</b> Sit down at home with the Pomo on ' +
+    "<b>Preview</b>. One stop per page here, in the same order the Pomo lists them — never re-order them, " +
+    "Posti has already sequenced the round.</div>");
+
+  parts.push(
+    '<div class="card"><h3>Add a stop<span class="sub">to ' + esc(r.id) + "</span></h3>" +
+    '<div class="field"><span>Street</span><input type="text" id="f-street" placeholder="Wähäjärvenkatu" autocomplete="off"></div>' +
+    '<div class="field"><span>Number</span><input type="text" id="f-nr" placeholder="5" autocomplete="off"></div>' +
+    '<div class="field"><span>At the door</span><textarea id="f-at" placeholder="Metal mailbox in the back yard, right of the loading bay"></textarea></div>' +
+    '<div class="field"><span>Drive to the next stop</span><textarea id="f-next" placeholder="Back onto Wähäjärvenkatu, right between the houses"></textarea></div>' +
+    '<div class="field"><span>Papers</span><input type="text" id="f-papers" placeholder="HS 4, HASA 5, VKO 1" autocomplete="off">' +
+      "<small>Codes and counts, comma separated.</small></div>" +
+    '<div class="field"><span>Flats (optional)</span><textarea id="f-apts" placeholder="1st floor: A3 -, A2 HS+HASA, A1 HASA&#10;2nd floor: A8 HS+HASA, A7 -"></textarea>' +
+      "<small>One line per floor. <b>Floor: flat papers, flat papers</b> — use a dash for flats that get nothing.</small></div>" +
+    '<div class="btn-row"><button class="btn pri" data-add-stop="1">Add to ' + esc(r.id) + "</button></div>" +
+    "</div>"
+  );
+
+  if(r.stops.length){
+    parts.push('<div class="card"><h3>Stops in ' + esc(r.id) + '<span class="sub">' + r.stops.length + " in order</span></h3>" +
+      r.stops.map((s,i) =>
+        '<div class="kv"><span class="k">' + (i+1) + ". " + esc(s.street + " " + s.nr) + "</span>" +
+        '<span class="v"><button class="btn ghost" style="padding:5px 10px;font-size:12px" data-del-stop="' + esc(s.k) + '">Remove</button></span></div>'
+      ).join("") + "</div>");
+  }
+
+  parts.push(
+    '<div class="card"><h3>Backup</h3>' +
+    '<p style="margin:0;color:var(--muted);font-size:14px;line-height:1.5">Everything lives in this phone’s browser storage. ' +
+    "Clearing site data would wipe it, so copy this out somewhere safe once you’ve typed a route in — " +
+    "message it to yourself and you can paste it back on any phone.</p>" +
+    '<div class="field"><span>Route data + your notes</span><textarea class="code" id="f-json" spellcheck="false">' +
+      esc(JSON.stringify({ data:DATA, notes:NOTES }, null, 1)) + "</textarea></div>" +
+    '<div class="btn-row">' +
+      '<button class="btn" data-copy-json="1">Copy</button>' +
+      '<button class="btn pri" data-import-json="1">Load what’s in the box</button>' +
+    "</div></div>"
+  );
+
+  $("#pane-data").innerHTML = parts.join("");
+}
+
+function parsePapers(str){
+  const out = {};
+  for(const part of String(str||"").split(/[,;]+/)){
+    const m = part.trim().match(/^([A-Za-zÄÖÅäöå]+)\s*[: ]?\s*(\d+)$/);
+    if(m) out[m[1].toUpperCase()] = +m[2];
+  }
+  return out;
+}
+function parseApts(str){
+  const floors = [];
+  for(const line of String(str||"").split(/\n+/)){
+    const t = line.trim();
+    if(!t) continue;
+    const i = t.indexOf(":");
+    if(i < 0) continue;
+    const name = t.slice(0, i).trim();
+    const list = [];
+    for(const cell of t.slice(i+1).split(",")){
+      const c = cell.trim();
+      if(!c) continue;
+      const bits = c.split(/\s+/);
+      const aid = bits.shift();
+      const rest = bits.join(" ").replace(/[-–—]/g, " ").trim();
+      const papers = rest ? rest.split(/[+\s]+/).filter(Boolean).map(x => x.toUpperCase()) : [];
+      list.push([aid, papers]);
+    }
+    if(list.length) floors.push({ f:name, list });
+  }
+  return floors;
+}
+
+/* =========================================================================
+   9. HELP PANE
+   ========================================================================= */
+
+function renderHelp(){
+  $("#pane-help").innerHTML = [
+    '<div class="card"><h3>Getting quick on a round you don’t know</h3>',
+    '<ol class="steps">',
+      "<li><b>Drive it once in daylight, unpaid.</b> One Sunday afternoon, 40 minutes. Nothing you do at 01:00 buys back as much time as seeing the courtyards lit.</li>",
+      "<li><b>Walk it on Street View first.</b> Tap <i>Map / Street View</i> on each stop, drop into the street view and look for the entrance, the archway, the bin shed. Do a few stops a night until the whole round is in your head.</li>",
+      "<li><b>Write the note the moment you find the box.</b> Standing at the door, thumb it into <i>My note</i>. That is the whole trick — after two weeks the notes are worth more than any map.</li>",
+      "<li><b>Sort the bag in route order before you drive off.</b> Bottom of the bag is the last stop. Digging through papers in the dark costs more than the driving.</li>",
+      "<li><b>Blocks of flats: only the flats with papers matter.</b> The flat list here hides the empty ones by default — 7 doors instead of 18.</li>",
+      "<li><b>Take the lift to the top and walk down.</b> Faster than climbing, and you never lose your place.</li>",
+      "<li><b>Never re-order the stops.</b> Posti already sequenced them. If a stop feels out of place, it usually means a one-way street or a locked gate you can’t see yet.</li>",
+    "</ol></div>",
+
+    '<div class="card"><h3>Paper codes</h3>',
+    '<dl class="gloss">' + Object.entries(PAPER_NAMES).map(([k,v]) =>
+      "<dt>" + esc(k) + "</dt><dd>" + esc(v) + "</dd>").join("") + "</dl></div>",
+
+    '<div class="card"><h3>Words on the Pomo and on doors</h3>',
+    '<dl class="gloss">' + [
+      ["jättöpaikka","drop-off point / depot"],
+      ["rappu, porras","stairwell (A, B, C)"],
+      ["kerros","floor"],
+      ["ovikoodi","door code"],
+      ["postilaatikko","mailbox"],
+      ["piha / takapiha","yard / back yard"],
+      ["kellari","basement"],
+      ["lastauslaituri","loading bay"],
+      ["pysäköinti","parking"],
+      ["nippu","bundle"],
+      ["lehti","newspaper"],
+      ["katu / tie / kuja","street / road / lane"],
+      ["sunnuntai","Sunday"]
+    ].map(([k,v]) => "<dt>" + esc(k) + "</dt><dd>" + esc(v) + "</dd>").join("") + "</dl></div>",
+
+    '<div class="card"><h3>Keep it on the phone</h3>',
+    '<ul class="plain">',
+      "<li><b>iPhone:</b> open this in Safari, Share → <i>Add to Home Screen</i>. It then opens full-screen with no address bar and works with no signal.</li>",
+      "<li><b>Android:</b> Chrome menu → <i>Add to Home screen</i>.</li>",
+      "<li>It works fully offline. Only the <i>Navigate</i> buttons need a connection, and they hand off to Google Maps.</li>",
+      "<li>Your ticks clear themselves each night. Your door notes stay forever.</li>",
+    "</ul></div>",
+
+    '<div class="note"><b>One thing to ask your supervisor:</b> what <b>VKO</b> and <b>TCO</b> are, and whether Talaskuja 1 takes the Sunday HASA bundle every week. Those are the only two things in your book I couldn’t read with certainty.</div>'
+  ].join("");
+}
+
+/* =========================================================================
+   10. ACTIONS
+   ========================================================================= */
+
+function markStop(id, on){
+  const r = route();
+  const s = r.stops.find(x => sid(r, x) === id);
+  if(!s) return;
+
+  if(on){
+    if(!DAY.startedAt){
+      DAY.startedAt = new Date().toISOString();
+      DAY.lastAt = DAY.startedAt;
+    }
+    const now = Date.now();
+    const from = DAY.lastAt ? new Date(DAY.lastAt).getTime() : now;
+    const secs = Math.round((now - from)/1000);
+    DAY.done[id] = now;
+    DAY.lastAt = new Date(now).toISOString();
+    DAY.history.push({ id, secs });
+    // Ignore silly outliers (phone left in a pocket for an hour).
+    if(secs > 5 && secs < 3600){
+      TIMES[id] = (TIMES[id] || []).concat(secs).slice(-20);
+      save(K.times, TIMES);
+    }
+    // Tick every flat in the building along with it.
+    for(const f of (s.apts || [])) for(const [aid, p] of f.list) if(p.length) DAY.apt[id + "|" + aid] = 1;
+  }else{
+    delete DAY.done[id];
+    for(const f of (s.apts || [])) for(const [aid] of f.list) delete DAY.apt[id + "|" + aid];
+  }
+  save(K.day, DAY);
+  renderAll();
+  if(on) scrollToCurrent();
+}
+
+function scrollToCurrent(){
+  const r = route(), i = firstUndoneIndex(r);
+  if(i < 0) return;
+  const el = document.getElementById("stop-" + sid(r, r.stops[i]));
+  if(el) el.scrollIntoView({ behavior:"smooth", block:"center" });
+}
+
+function undoLast(){
+  const last = DAY.history.pop();
+  if(!last) return;
+  save(K.day, DAY);
+  markStop(last.id, false);
+  toast("Put back");
+}
+
+function setPane(name){
+  $$(".tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.pane === name)));
+  ["run","routes","data","help"].forEach(p => { $("#pane-" + p).hidden = (p !== name); });
+  // Built on demand: rebuilding it on every tick would wipe a half-typed stop.
+  if(name === "data") renderData();
+  window.scrollTo({ top:0, behavior:"auto" });
+}
+
+/* ---- one delegated click handler for the whole page --------------------- */
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-tick],[data-apt],[data-route],[data-pane],[data-mode-toggle]," +
+    "[data-clear-day],[data-add-stop],[data-del-stop],[data-copy-json],[data-import-json],[data-toggle-only]");
+  if(!t) return;
+  const d = t.dataset;
+
+  if(d.pane){ setPane(d.pane); return; }
+
+  if(d.tick){ markStop(d.tick, !DAY.done[d.tick]); return; }
+
+  if(d.apt){
+    DAY.apt[d.apt] ? delete DAY.apt[d.apt] : DAY.apt[d.apt] = 1;
+    save(K.day, DAY); renderRun(); return;
+  }
+
+  if(d.toggleOnly !== undefined){
+    PREFS.onlyPapers = !PREFS.onlyPapers; save(K.prefs, PREFS); renderRun(); return;
+  }
+
+  if(d.route){
+    DAY.routeId = d.route;
+    // A fresh route gets its own clock.
+    DAY.startedAt = null; DAY.lastAt = null; DAY.history = [];
+    save(K.day, DAY); renderAll(); setPane("run"); return;
+  }
+
+  if(d.modeToggle !== undefined){
+    PREFS.mode = PREFS.mode === "amber" ? "night" : "amber";
+    save(K.prefs, PREFS); applyPrefs(); renderRoutes(); return;
+  }
+
+  if(d.clearDay !== undefined){
+    if(!confirm("Clear tonight's ticks for every route? Your notes and timings stay.")) return;
+    DAY = { date:todayKey(), routeId:DAY.routeId, startedAt:null, lastAt:null, done:{}, apt:{}, history:[] };
+    save(K.day, DAY); renderAll(); toast("Cleared"); return;
+  }
+
+  if(d.addStop !== undefined){
+    const street = $("#f-street").value.trim();
+    const nr = $("#f-nr").value.trim();
+    if(!street || !nr){ toast("Street and number are both needed"); return; }
+    const r = route();
+    r.stops.push({
+      k: "s" + Date.now().toString(36),
+      street, nr,
+      at: $("#f-at").value.trim(),
+      next: $("#f-next").value.trim(),
+      papers: parsePapers($("#f-papers").value),
+      apts: parseApts($("#f-apts").value)
+    });
+    if(r.pagesEntered != null) r.pagesEntered = Math.max(r.pagesEntered, 1);
+    save(K.data, DATA); renderAll();
+    ["f-street","f-nr","f-at","f-next","f-papers","f-apts"].forEach(i => $("#" + i).value = "");
+    $("#f-street").focus();
+    toast(street + " " + nr + " added");
+    return;
+  }
+
+  if(d.delStop){
+    const r = route();
+    const i = r.stops.findIndex(s => s.k === d.delStop);
+    if(i < 0) return;
+    if(!confirm("Remove " + r.stops[i].street + " " + r.stops[i].nr + " from " + r.id + "?")) return;
+    r.stops.splice(i, 1);
+    save(K.data, DATA); renderAll(); toast("Removed");
+    return;
+  }
+
+  if(d.copyJson !== undefined){
+    const ta = $("#f-json");
+    ta.select(); ta.setSelectionRange(0, 999999);
+    navigator.clipboard ? navigator.clipboard.writeText(ta.value).then(
+      () => toast("Copied — paste it somewhere safe"),
+      () => toast("Select the text and copy it by hand")
+    ) : toast("Select the text and copy it by hand");
+    return;
+  }
+
+  if(d.importJson !== undefined){
+    let parsed;
+    try{ parsed = JSON.parse($("#f-json").value); }
+    catch(err){ toast("That isn't valid data — check for a missing bracket"); return; }
+    if(!parsed || !parsed.data || !Array.isArray(parsed.data.routes)){ toast("No routes found in that text"); return; }
+    if(!confirm("Replace the routes and notes on this phone with what's in the box?")) return;
+    DATA = parsed.data;
+    NOTES = parsed.notes || {};
+    save(K.data, DATA); save(K.notes, NOTES);
+    if(!DATA.routes.some(r => r.id === DAY.routeId)) DAY.routeId = DATA.routes[0].id;
+    save(K.day, DAY);
+    renderAll(); toast("Loaded");
+    return;
+  }
+});
+
+/* Notes save as they're typed, debounced so storage isn't hammered. */
+let noteTimer;
+document.addEventListener("input", e => {
+  const id = e.target.dataset ? e.target.dataset.note : null;
+  if(!id) return;
+  NOTES[id] = e.target.value;
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => save(K.notes, NOTES), 400);
+});
+
+$("#bigBtn").addEventListener("click", () => {
+  const r = route(), i = firstUndoneIndex(r);
+  if(i < 0) return;
+  if(!DAY.startedAt){
+    DAY.startedAt = new Date().toISOString();
+    DAY.lastAt = DAY.startedAt;
+    save(K.day, DAY);
+    renderAll(); scrollToCurrent();
+    toast("Clock started · window closes " + r.to);
+    return;
+  }
+  markStop(sid(r, r.stops[i]), true);
+});
+$("#undoBtn").addEventListener("click", undoLast);
+
+/* =========================================================================
+   11. BOOT
+   ========================================================================= */
+
+function applyPrefs(){
+  document.documentElement.setAttribute("data-mode", PREFS.mode === "amber" ? "amber" : "night");
+  $("#veil").style.opacity = (PREFS.dim || 0) / 100;
+}
+
+function renderAll(){
+  renderHeader();
+  renderActionBar();
+  renderRun();
+  renderRoutes();
+  if(!$("#pane-data").hidden) renderData();
+}
+
+applyPrefs();
+renderAll();
+renderHelp();
+
+// Keep the clock and the pace chip honest without re-rendering the list.
+setInterval(renderHeader, 15000);
+
+// A date rollover mid-session should hand back a clean sheet.
+setInterval(() => {
+  if(DAY.date !== todayKey()){
+    DAY = { date:todayKey(), routeId:DAY.routeId, startedAt:null, lastAt:null, done:{}, apt:{}, history:[] };
+    save(K.day, DAY); renderAll();
+  }
+}, 60000);
+</script>
