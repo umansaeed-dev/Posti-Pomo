@@ -1362,7 +1362,7 @@ const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 const K = { data:"pp.data.v1", notes:"pp.notes.v1", times:"pp.times.v1", day:"pp.day.v1",
-            prefs:"pp.prefs.v1", pos:"pp.pos.v1" };
+            prefs:"pp.prefs.v1", pos:"pp.pos.v1", apos:"pp.addrpos.v1" };
 
 function clone(v){ return v == null ? v : JSON.parse(JSON.stringify(v)); }
 
@@ -1820,6 +1820,87 @@ function recordFix(id, lat, lon, acc){
   return true;
 }
 
+/* ---- looked-up door locations -------------------------------------------
+   Your own pins are the truth: taken at the mailbox, tightening every visit.
+   But they need a first visit, so night one the maps were empty and Find had
+   nothing to point at. This is the other source: each address looked up once
+   against OpenStreetMap's geocoder and cached forever, keyed by the address
+   itself so the depot is fetched once, not five times.
+
+   An address lookup lands on the street, not the mailbox in the back yard —
+   so these are drawn hollow, labelled approximate, and a real pin replaces
+   one the moment it exists. doorPos() is the one place that ranking lives. */
+let APOS = load(K.apos, {});
+
+function addrKey(s){ return (s.street + " " + s.nr).toLowerCase(); }
+
+function doorPos(r, s){
+  const own = POS[sid(r, s)];
+  if(own) return own;
+  const a = APOS[addrKey(s)];
+  return a ? { lat: a.lat, lon: a.lon, approx: true } : null;
+}
+
+function locatedCount(r){ return r.stops.filter(s => doorPos(r, s)).length; }
+
+/* Every address the book knows, deduplicated, with the ones still unfetched. */
+function lookupJobs(){
+  const seen = new Set(), all = [], todo = [];
+  for(const r of DATA.routes) for(const s of (r.stops || [])){
+    const k = addrKey(s);
+    if(seen.has(k)) continue;
+    seen.add(k);
+    all.push(k);
+    if(!APOS[k]) todo.push({ k, q: fullAddress(s) });
+  }
+  return { all, todo };
+}
+
+/* The Valkeakoski rule, as a gate this time: any result more than 12 km from
+   Hämeenlinna centre is a geocoder wandering off to the wrong town, and a
+   missing dot beats a dot 20 km away. */
+const TOWN_CENTRE = { lat: 61.0, lon: 24.46 };
+const TOWN_RADIUS_M = 12000;
+
+const LOOKUP = { delay: 1150, running: false };   // ~1 req/s: Nominatim's public limit
+
+async function runLookup(){
+  if(LOOKUP.running) return;
+  LOOKUP.running = true;
+  const { todo } = lookupJobs();
+  const prog = () => $("#lu-prog");
+  let done = 0, misses = 0, dead = null;
+
+  for(const job of todo){
+    const el = prog();
+    if(el) el.textContent = "Looking up " + (done + misses + 1) + " of " + todo.length + "…";
+    try{
+      const res = await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1" +
+        "&countrycodes=fi&q=" + encodeURIComponent(job.q), { headers: { "Accept": "application/json" } });
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      const hit = (await res.json())[0];
+      const p = hit && { lat: +hit.lat, lon: +hit.lon };
+      if(p && metresBetween(TOWN_CENTRE, p) <= TOWN_RADIUS_M){
+        APOS[job.k] = p;
+        save(K.apos, APOS);
+        done++;
+      }else{
+        misses++;               // not cached, so a later run retries it
+      }
+    }catch(e){
+      dead = e;                 // offline or blocked: stop, keep what we have
+      break;
+    }
+    if(LOOKUP.delay) await new Promise(r => setTimeout(r, LOOKUP.delay));
+  }
+
+  LOOKUP.running = false;
+  if(dead)            toast("No connection — kept " + done + ", tap again to continue");
+  else if(misses)     toast(done + " found, " + misses + " not found — those stay pin-on-first-visit");
+  else if(todo.length) toast("All door locations saved — they work offline now");
+  renderAll();
+}
+
 const GEO = { pos:null, acc:null, at:0, heading:null, headingAt:0, err:null, watching:false };
 
 function startGeo(){
@@ -1879,8 +1960,8 @@ function findTarget(){
   const i = firstUndoneIndex(r);
   if(i < 0) return null;
   for(let j = i; j < r.stops.length; j++){
-    const s = r.stops[j], id = sid(r, s);
-    if(POS[id]) return { r, s, id, ahead: j - i };
+    const s = r.stops[j], p = doorPos(r, s);
+    if(p) return { r, s, id: sid(r, s), p, approx: !!p.approx, ahead: j - i };
   }
   return { r, s:r.stops[i], id:sid(r, r.stops[i]), ahead:0, unpinned:true };
 }
@@ -2284,14 +2365,18 @@ function renderFind(){
       '<br><span>not pinned yet</span></div>' +
       '<div class="rel">deliver it once and it learns the spot</div></div>');
   }else{
-    const d = GEO.pos ? metresBetween(GEO.pos, POS[t.id]) : null;
+    const d = GEO.pos ? metresBetween(GEO.pos, t.p) : null;
     const f = fmtMetres(d);
-    const arrived = d != null && d < 25;
+    // A looked-up address lands on the street, not the mailbox around the
+    // back, so "arrived" needs more slack before it stops pointing.
+    const arrived = d != null && d < (t.approx ? 45 : 25);
     parts.push('<div class="readout' + (arrived ? " arrived" : "") + '">');
     parts.push('<div class="dist">' + (d == null ? "—" : f.n + '<small>' + f.u + "</small>") + "</div>");
     parts.push('<div class="to">' + esc(t.s.street + " " + t.s.nr) +
       (t.ahead ? '<br><span>' + t.ahead + " stop" + (t.ahead>1?"s":"") + " further on</span>" : "") + "</div>");
-    parts.push('<div class="rel" id="relword">' + (arrived ? "you’re there" : "waiting for a fix") + "</div>");
+    parts.push('<div class="rel" id="relword">' +
+      (arrived ? (t.approx ? "this is the building — the box may hide behind it" : "you’re there")
+               : "waiting for a fix") + "</div>");
     parts.push("</div>");
   }
 
@@ -2319,33 +2404,37 @@ function renderFind(){
     if(s.at) b.push('<div class="door"><b>At the door</b>' + esc(s.at) + "</div>");
     if(NOTES[t.id]) b.push('<div class="door"><b>My note</b>' + esc(NOTES[t.id]) + "</div>");
     if(PHOTOS[t.id]) b.push('<div class="shot"><img src="' + PHOTOS[t.id] + '" alt="The door at ' + esc(s.street + " " + s.nr) + '"></div>');
-    b.push('<div class="pinrow"><span class="pin set">pinned from ' + POS[t.id].n + " visit" + (POS[t.id].n>1?"s":"") + "</span></div>");
+    b.push('<div class="pinrow">' + (t.approx
+      ? '<span class="pin">street address · exact from your first delivery</span>'
+      : '<span class="pin set">pinned from ' + POS[t.id].n + " visit" + (POS[t.id].n>1?"s":"") + "</span>") + "</div>");
     b.push("</div>");
     parts.push(b.join(""));
   }
 
-  // ---- map from your own pins -------------------------------------------
+  // ---- map from pins + looked-up addresses --------------------------------
   const pinned = pinnedCount(r);
-  if(pinned >= 2){
+  const located = locatedCount(r);
+  if(located >= 2){
+    const cap = pinned
+      ? pinned + " of " + r.stops.length + " doors pinned · rings are from addresses"
+      : located + " of " + r.stops.length + " doors from addresses · pins replace them as you deliver";
     parts.push('<div class="mapwrap"><canvas id="minimap" width="900" height="700"></canvas>' +
-               '<span class="cap">' + pinned + " of " + r.stops.length + " doors pinned · your own trail</span></div>");
+               '<span class="cap">' + cap + "</span></div>");
   }
 
   // ---- nearest doors, for when you are simply lost ------------------------
   if(GEO.pos){
     const near = r.stops
-      .filter(s => POS[sid(r, s)])
-      .map(s => {
-        const id = sid(r, s);
-        return { s, id, d: metresBetween(GEO.pos, POS[id]), b: bearingTo(GEO.pos, POS[id]) };
-      })
+      .map(s => ({ s, p: doorPos(r, s) }))
+      .filter(x => x.p)
+      .map(x => ({ ...x, d: metresBetween(GEO.pos, x.p), b: bearingTo(GEO.pos, x.p) }))
       .sort((a, b2) => a.d - b2.d)
       .slice(0, 6);
     if(near.length){
-      parts.push('<div class="card"><h3>Nearest doors<span class="sub">from where you stand</span></h3>');
+      parts.push('<div class="card"><h3>Nearest doors<span class="sub">from where you stand · ~ means from the address</span></h3>');
       for(const n of near){
         const f = fmtMetres(n.d);
-        parts.push('<div class="near"><span class="d">' + f.n + " " + f.u + "</span>" +
+        parts.push('<div class="near"><span class="d">' + (n.p.approx ? "~" : "") + f.n + " " + f.u + "</span>" +
           '<span class="nm">' + esc(n.s.street + " " + n.s.nr) + "</span>" +
           '<span class="bg">' + Math.round(n.b) + "°</span></div>");
       }
@@ -2353,10 +2442,11 @@ function renderFind(){
     }
   }
 
-  if(!pinned){
-    parts.push('<div class="empty"><b style="color:var(--text)">No doors pinned on ' + esc(r.id) + " yet.</b><br>" +
-      "Just run the route as normal. Every time you tap <b>Delivered</b> the phone quietly saves where you were standing, " +
-      "and from the next run this screen points straight at the door — no signal needed.</div>");
+  if(!located){
+    parts.push('<div class="empty"><b style="color:var(--text)">No doors located on ' + esc(r.id) + " yet.</b><br>" +
+      "Two ways to fill this screen: run the route as normal — every <b>Delivered</b> quietly saves where you " +
+      "were standing — or go to <b>Routes → The whole night</b> and look up every address once while you have " +
+      "internet. After either, this screen points at doors with no signal at all.</div>");
   }
 
   parts.push("</div>");
@@ -2377,15 +2467,16 @@ function paintDial(){
     arrow.style.transform = "rotate(0deg)";
     return;
   }
-  const brg = bearingTo(GEO.pos, POS[t.id]);
+  const brg = bearingTo(GEO.pos, t.p);
   const rel = haveHeading ? brg - GEO.heading : brg;
   dial.classList.toggle("stale", !haveHeading);
   arrow.style.transform = "rotate(" + rel.toFixed(1) + "deg)";
 
   const word = $("#relword");
   if(word){
-    const d = metresBetween(GEO.pos, POS[t.id]);
-    word.textContent = d < 25 ? "you’re there"
+    const d = metresBetween(GEO.pos, t.p);
+    word.textContent = d < (t.approx ? 45 : 25)
+      ? (t.approx ? "this is the building — the box may hide behind it" : "you’re there")
       : haveHeading ? clockWords(rel)
       : "bearing " + Math.round(brg) + "° · turn the compass on";
   }
@@ -2397,7 +2488,7 @@ function drawMap(){
   const cv = $("#minimap");
   if(!cv) return;
   const r = route();
-  const pts = r.stops.map(s => ({ s, p: POS[sid(r, s)] })).filter(x => x.p);
+  const pts = r.stops.map(s => ({ s, p: doorPos(r, s) })).filter(x => x.p);
   if(pts.length < 2) return;
 
   const all = pts.map(x => x.p).concat(GEO.pos ? [GEO.pos] : []);
@@ -2434,16 +2525,21 @@ function drawMap(){
   const cur = findTarget();
   const marks = pts.map(x => {
     const isNext = cur && !cur.unpinned && sid(r, x.s) === cur.id;
-    return { x, X:px(x.p), Y:py(x.p), isNext, done:isSettled(r, x.s), rad:isNext ? 28 : 22 };
+    return { x, X:px(x.p), Y:py(x.p), isNext, approx:!!x.p.approx,
+             done:isSettled(r, x.s), rad:isNext ? 28 : 22 };
   });
 
-  // pass 1 — the markers themselves
+  // pass 1 — the markers themselves; a looked-up address is a dashed ring,
+  // because it is the street's word for where the door is, not yours yet
   marks.forEach((m, i) => {
     g.beginPath(); g.arc(m.X, m.Y, m.rad, 0, Math.PI*2);
     g.fillStyle = m.isNext ? c("--accent", "#ff8200") : m.done ? c("--surface-3", "#1e2839") : c("--surface-2", "#161e2e");
     g.fill();
     g.strokeStyle = m.isNext ? c("--accent", "#ff8200") : m.done ? c("--good", "#3ddc97") : c("--line", "#26314a");
-    g.lineWidth = 4; g.stroke();
+    g.lineWidth = 4;
+    if(m.approx && !m.isNext) g.setLineDash([7, 6]);
+    g.stroke();
+    g.setLineDash([]);
 
     g.fillStyle = m.isNext ? c("--accent-ink", "#2a1400") : c("--muted", "#8c9ab6");
     g.font = "700 28px ui-monospace,monospace";
@@ -2510,7 +2606,7 @@ function drawNightMap(){
 
   const pts = [];
   DATA.routes.forEach((r, ri) => (r.stops || []).forEach(s => {
-    const p = POS[sid(r, s)];
+    const p = doorPos(r, s);
     if(p) pts.push({ ri, s, p });
   }));
   if(pts.length < 2) return;
@@ -2552,8 +2648,15 @@ function drawNightMap(){
   const marks = pts.map(x => ({ x, X: px(x.p), Y: py(x.p), rad: 13 }));
   marks.forEach(m => {
     g.beginPath(); g.arc(m.X, m.Y, m.rad, 0, Math.PI*2);
-    g.fillStyle = routeHue(m.x.ri); g.fill();
-    g.strokeStyle = c("--ink", "#05070d"); g.lineWidth = 3; g.stroke();
+    if(m.x.p.approx){
+      // from the address: a ring in the route's colour, filled with background
+      g.fillStyle = c("--surface", "#0e1420"); g.fill();
+      g.strokeStyle = routeHue(m.x.ri); g.lineWidth = 4; g.stroke();
+    }else{
+      // from your own feet: solid
+      g.fillStyle = routeHue(m.x.ri); g.fill();
+      g.strokeStyle = c("--ink", "#05070d"); g.lineWidth = 3; g.stroke();
+    }
   });
 
   /* One label per street per route, not one per door. A hundred and thirty
@@ -2651,23 +2754,44 @@ function renderRoutes(){
 
     if(segs.length) c.push('<div style="margin-top:12px">' + allRoutesRow() + "</div>");
 
-    if(pins >= 2){
+    // ---- door locations: fetch once, keep forever -------------------------
+    const { all, todo } = lookupJobs();
+    const have = all.length - todo.length;
+    const located = DATA.routes.reduce((n, r) => n + locatedCount(r), 0);
+
+    if(todo.length){
+      c.push('<div style="margin-top:14px">' +
+        '<button class="btn pri" data-lookup="1" style="width:100%">' +
+          (have ? "Continue looking up doors — " + have + " of " + all.length + " saved"
+                : "Look up all " + all.length + " door locations once") + "</button>" +
+        '<p style="margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.5" id="lu-prog">' +
+        "Needs internet once, takes ~" + Math.ceil(todo.length / 50) + "–" +
+        Math.ceil(todo.length / 30) + " min, then every map here works offline forever. " +
+        "Do it at home on wifi, not in the car. Locations © OpenStreetMap contributors.</p></div>");
+    }else if(all.length){
+      c.push('<p style="margin:12px 0 0;color:var(--muted);font-size:13px" id="lu-prog">' +
+        "All " + all.length + " door locations saved on this phone — the maps below work with " +
+        "no signal. Locations © OpenStreetMap contributors.</p>");
+    }
+
+    if(located >= 2){
       c.push('<div class="mapwrap" style="margin-top:12px">' +
         '<canvas id="nightmap" width="900" height="900"></canvas>' +
-        '<span class="cap">' + pins + " of " + stops.length +
-        " doors pinned · every route, one map</span></div>");
+        '<span class="cap">' + pins + " pinned · " + (located - pins) +
+        " from addresses · every route, one map</span></div>");
       c.push('<p style="margin:10px 0 0;color:var(--muted);font-size:13.5px;line-height:1.5">' +
-        "One colour per route, drawn from your own pins. Street names are placed once per " +
-        "route; where two would overlap, the second is left off rather than smeared over the " +
-        "first.</p>");
+        "One colour per route. <b>Solid dots</b> are doors you have delivered to — pinned where " +
+        "you actually stood. <b>Rings</b> are looked-up addresses: right building, but the box " +
+        "can hide around the back, so your own pin replaces the ring the first time you deliver " +
+        "there. Street names are placed once per route; where two would overlap, the second is " +
+        "left off rather than smeared over the first.</p>");
     }else{
       c.push('<p style="margin:12px 0 0;color:var(--muted);font-size:13.5px;line-height:1.5">' +
         "<b>The one picture with every door on it</b> gets drawn right here, one colour per " +
-        "route — but it comes from your own pins, and you have " +
-        (pins === 1 ? "one so far" : "none yet") + ". Every time you tap <b>Delivered</b> the " +
-        "phone remembers where you were standing, so it fills itself in as you work. " +
-        "No map service can do this part: half these boxes sit in back yards tens of metres " +
-        "off the road, which is exactly where an address drops you in the wrong spot.</p>");
+        "route — the button above fills it in one go, or it builds itself from your own pins " +
+        "as you tap <b>Delivered</b>. Your pins always win: half these boxes sit in back yards " +
+        "tens of metres off the road, which is exactly where an address drops you in the " +
+        "wrong spot.</p>");
     }
     c.push("</div>");
     parts.push(c.join(""));
@@ -2985,11 +3109,18 @@ document.addEventListener("click", e => {
   const t = e.target.closest("[data-tick],[data-apt],[data-route],[data-pane],[data-mode-toggle]," +
     "[data-clear-day],[data-add-stop],[data-del-stop],[data-copy-json],[data-import-json]," +
     "[data-toggle-only],[data-skip],[data-pin],[data-unpin],[data-unshot],[data-compass]," +
-    "[data-view],[data-goto],[data-maps]");
+    "[data-view],[data-goto],[data-maps],[data-lookup]");
   if(!t) return;
   const d = t.dataset;
 
   if(d.pane){ setPane(d.pane); return; }
+
+  if(d.lookup){
+    t.disabled = true;
+    t.textContent = "Looking up… keep the app open";
+    runLookup();          // async; it re-renders and reports when it stops
+    return;
+  }
 
   if(d.maps){
     PREFS.maps = d.maps;

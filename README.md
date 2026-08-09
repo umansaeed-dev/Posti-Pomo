@@ -57,11 +57,12 @@ Underneath the parts, the app draws its own map: **every route at once, one
 colour per route**, street names placed once per route. No tiles and no network
 — it is drawn from your own pins, so it works in a car park with no signal.
 
-That map starts empty and fills itself in. Every time you tap **Delivered** the
-phone saves where you were standing, so after a week of rounds it is a picture
-of your whole night that no map service could have given you — half these boxes
-sit in back yards tens of metres off the road, which is exactly where an address
-drops you in the wrong spot.
+Tap **Look up all door locations once** on the same card and that map is
+complete the same evening: every address fetched once, cached forever, rings
+for looked-up doors and solid dots for delivered ones. Without the lookup it
+still builds itself from your own pins as you tap **Delivered** — and either
+way your pins take over door by door, because a pin at the mailbox beats an
+address on the street side of the building every time.
 
 ## Put it on your phone
 
@@ -84,8 +85,25 @@ works, and a service worker keeps the whole thing running with no signal.
 
 ## Find — the part that solves not knowing the addresses
 
-No map service is reachable to bake house numbers in, and none is needed,
-because you walk to every one of these doors anyway.
+Two sources feed this screen, and they have an order:
+
+1. **Looked-up addresses** — under **Routes → The whole night** there is a
+   one-time button that asks OpenStreetMap's geocoder for every address in the
+   book (~134 unique, about one per second, so give it a few minutes on wifi at
+   home). Results are cached on the phone forever, any answer that lands more
+   than 12 km from Hämeenlinna is thrown away rather than trusted — the
+   Valkeakoski lesson, applied as a gate — and from that moment Find, the
+   nearest-doors list and both drawn maps work for every stop, offline,
+   before you have delivered anything. Locations © OpenStreetMap contributors.
+2. **Your own pins** — taken where you actually stood, and they win the
+   moment they exist.
+
+The difference matters: an address lookup lands on the building from the
+street, but half these boxes are in back yards and courtyards tens of metres
+off the road. So looked-up doors are drawn as **rings** and marked
+*approximate*, your pins are **solid**, and a pin replaces a ring at the first
+delivery. You walk to every one of these doors anyway — night one costs you
+nothing.
 
 - Every time you tap **Delivered**, the phone saves where you were standing.
   Night one costs you nothing extra.

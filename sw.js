@@ -3,7 +3,7 @@
    no signal. Cache the shell on install, serve from cache first, and refresh in
    the background when there happens to be a connection. */
 
-const CACHE = "katinen-b-v1";
+const CACHE = "katinen-b-v2";
 const SHELL = [
   "./",
   "./index.html",

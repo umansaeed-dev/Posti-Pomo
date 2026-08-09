@@ -596,11 +596,135 @@ console.log("\nfind, with a mocked fix");
   }));
   await t("the combined map counts pins from every route, not just this one", async () => {
     const cap = await p.locator(".mapwrap .cap").last().innerText();
-    const m = cap.match(/(\d+) of (\d+) doors pinned/);
-    return !!m && +m[1] >= 4 && +m[2] === 138;
+    const m = cap.match(/(\d+) pinned/);
+    return !!m && +m[1] >= 4;
   });
   await t("the whole-night links survive a route switch", async () =>
     (await p.locator("a.wn-g").count()) > 1 && (await p.locator("a.wn-a").count()) > 1);
+
+  await t("no uncaught errors", async () => errs.length === 0);
+  await ctx.close();
+}
+
+/* --------------------------------------------------- 2b. address lookup */
+console.log("\naddress lookup, mocked geocoder");
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  const errs = [];
+  p.on("pageerror", e => errs.push(e.message));
+
+  /* Deterministic geocoder: coordinates derived from the query text, spread
+     around Hämeenlinna — except one street, which "resolves" 40 km away the
+     way Heikkilänkatu once resolved to Valkeakoski, and one that finds
+     nothing. The app must keep the first out of the cache and survive the
+     second. */
+  let calls = 0;
+  await p.route("https://nominatim.openstreetmap.org/**", async route => {
+    calls++;
+    const q = decodeURIComponent(new URL(route.request().url()).searchParams.get("q"));
+    if(/Salamanteri/.test(q)) return route.fulfill({ json: [] });                    // not found
+    if(/Mertapolku/.test(q))                                                        // wrong town
+      return route.fulfill({ json: [{ lat: "61.26", lon: "24.03" }] });
+    let h = 0;
+    for(const ch of q) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+    return route.fulfill({ json: [{ lat: String(61.0 + (h % 89) / 8900),
+                                    lon: String(24.46 + (h % 97) / 4850) }] });
+  });
+
+  await p.goto(BASE + "/index.html");
+  await p.waitForTimeout(400);
+  await p.evaluate(() => { LOOKUP.delay = 0; });        // no 1.15 s/req in tests
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(250);
+
+  await t("the lookup button offers every unique address once", async () => {
+    const label = await p.locator("[data-lookup]").innerText();
+    const uniq = await p.evaluate(() => lookupJobs().all.length);
+    // 138 stops but the depot opens all five routes, so five of them collapse.
+    return uniq === 134 && label.includes("134");
+  });
+
+  await p.click("[data-lookup]");
+  await p.waitForFunction(() => !LOOKUP.running &&
+    Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length >= 132,
+    null, { timeout: 30000 });
+  await p.waitForTimeout(400);
+
+  await t("one request per unique address, none repeated", async () => calls === 134);
+  await t("good results are cached for offline use", async () => {
+    const n = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
+    return n === 132;                                    // 134 minus the two bad ones
+  });
+  await t("a result in the wrong town is rejected, not cached", async () =>
+    await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["mertapolku 2"]));
+  await t("a not-found address stays pin-on-first-visit", async () =>
+    await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["salamanteri 3"]));
+  await t("misses are offered again, successes are not", async () => {
+    const label = await p.locator("[data-lookup]").innerText();
+    return label.includes("132 of 134");
+  });
+
+  await t("the whole-night map now draws every located door", async () => await p.evaluate(() => {
+    const c = document.querySelector("#nightmap");
+    if(!c) return false;
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    const bg = d[0] + "," + d[1] + "," + d[2];
+    let diff = 0;
+    for(let i = 0; i < d.length; i += 4)
+      if(d[i] + "," + d[i+1] + "," + d[i+2] !== bg) diff++;
+    return diff > 3000;
+  }));
+  await t("the caption says the doors come from addresses", async () => {
+    const cap = await p.locator(".mapwrap .cap").last().innerText();
+    return /from addresses/.test(cap);
+  });
+
+  /* The whole point: Find works on night one, before a single delivery. */
+  await t("Find points at an unvisited door using its address", async () => {
+    await p.evaluate(() => {
+      GEO.pos = { lat: 61.0, lon: 24.46 }; GEO.acc = 8; GEO.at = Date.now();
+    });
+    await p.click('[data-pane="find"]'); await p.waitForTimeout(500);
+    const txt = await p.locator("#pane-find").innerText();
+    return /\d/.test(await p.locator(".readout .dist").innerText())
+        && /street address/.test(txt);
+  });
+  await t("looked-up doors reach the nearest-doors list", async () =>
+    (await p.locator(".near").count()) > 0 &&
+    /~/.test(await p.locator(".near .d").first().innerText()));
+  await t("a real pin beats the looked-up address", async () => {
+    await p.evaluate(() => {
+      const r = DATA.routes[0], s = r.stops[0];
+      recordFix(r.id + ":" + s.k, 61.0005, 24.4605, 5);
+    });
+    return await p.evaluate(() => {
+      const r = DATA.routes[0], s = r.stops[0];
+      return !doorPos(r, s).approx;
+    });
+  });
+
+  /* Losing the connection mid-run must keep what it has and say so. */
+  await t("a dead connection stops the run but keeps every saved door", async () => {
+    await p.evaluate(() => { localStorage.removeItem("pp.addrpos.v1"); APOS = {}; });
+    let n = 0;
+    await p.unroute("https://nominatim.openstreetmap.org/**");
+    await p.route("https://nominatim.openstreetmap.org/**", route => {
+      if(++n > 10) return route.abort();
+      const q = decodeURIComponent(new URL(route.request().url()).searchParams.get("q"));
+      let h = 0; for(const ch of q) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+      return route.fulfill({ json: [{ lat: String(61.0 + (h % 89) / 8900),
+                                      lon: String(24.46 + (h % 97) / 4850) }] });
+    });
+    await p.click('[data-pane="routes"]'); await p.waitForTimeout(250);
+    await p.click("[data-lookup]");
+    await p.waitForFunction(() => !LOOKUP.running &&
+      Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length === 10,
+      null, { timeout: 15000 });
+    await p.waitForTimeout(300);
+    const kept = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
+    const label = await p.locator("[data-lookup]").innerText();
+    return kept === 10 && label.includes("10 of 134");
+  });
 
   await t("no uncaught errors", async () => errs.length === 0);
   await ctx.close();
