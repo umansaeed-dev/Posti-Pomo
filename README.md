@@ -31,6 +31,38 @@ light night doesn't flatter your times. Any door in a flat list can be ticked,
 including greyed-out ones — tonight's list can name a flat that took nothing
 when this was written down.
 
+## The whole night — all five routes at once
+
+Each route has its own **Whole route** buttons at the bottom of its stop list.
+Under **Routes** there is now the bigger view: all **138 stops across all five
+routes**, in Pomo order, depot to depot, as one chain.
+
+It comes in **14 parts**, and that is a limit of the map apps rather than a
+choice. Google Maps caps a route at nine waypoints and has no URL at all that
+drops a hundred named pins on a map; Apple's `A to: B to: C` chain is
+undocumented and truncates. Sending 138 stops and letting an app quietly keep
+the first eleven is the worst outcome — you would not notice until you were
+standing in the wrong yard. So the night is cut into parts that fit, **each one
+starting on the stop the part before it ended on**, so no leg between them is
+missing. Every row names where it starts and where it ends, and says which
+route it belongs to; the rows that straddle two routes are the hand-over legs,
+which are the easiest ones to lose.
+
+Both map apps are offered on every part, because they fail differently and
+which one your phone handles better is worth finding out once, in daylight.
+
+### One picture with every door on it
+
+Underneath the parts, the app draws its own map: **every route at once, one
+colour per route**, street names placed once per route. No tiles and no network
+— it is drawn from your own pins, so it works in a car park with no signal.
+
+That map starts empty and fills itself in. Every time you tap **Delivered** the
+phone saves where you were standing, so after a week of rounds it is a picture
+of your whole night that no map service could have given you — half these boxes
+sit in back yards tens of metres off the road, which is exactly where an address
+drops you in the wrong spot.
+
 ## Put it on your phone
 
 **Turn on GitHub Pages first.** Repo → Settings → Pages → Source: *Deploy from a
@@ -84,8 +116,8 @@ because you walk to every one of these doors anyway.
 - **Pace** — projected finish against the length of the route's time window, so
   you can tell at stop 4 whether you are going to make it. Starting late doesn't
   make it panic.
-- **Routes** — switch between the five routes, amber night-vision mode, and a
-  brightness dimmer for 3am eyes.
+- **Routes** — switch between the five routes, **the whole night** (below),
+  amber night-vision mode, and a brightness dimmer for 3am eyes.
 - **Data** — add the rest of the delivery book yourself, and back it up.
 - **Help** — how to get quick on a round you don't know, paper codes, and the
   Finnish words that appear on the Pomo and on doors.

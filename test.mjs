@@ -100,7 +100,7 @@ console.log("\ncore, normal origin");
     for(const rid of ["1096016","1096017","1096018","1096019","1096020"]){
       await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
       await p.click(`[data-route="${rid}"]`); await p.waitForTimeout(300);
-      const hrefs = await p.locator("a.wr-g, a.wr-a").evaluateAll(a => a.map(x => x.href));
+      const hrefs = await p.locator("a.wr-g, a.wr-a, a.wn-g, a.wn-a").evaluateAll(a => a.map(x => x.href));
       for(const h of hrefs){
         const url = decodeURIComponent(h);
         // Pull each address out of the query and check it individually, so a
@@ -119,7 +119,7 @@ console.log("\ncore, normal origin");
     for(const rid of ["1096016","1096017","1096018","1096019","1096020"]){
       await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
       await p.click(`[data-route="${rid}"]`); await p.waitForTimeout(300);
-      const hrefs = await p.locator("a.wr-g, a.wr-a").evaluateAll(a => a.map(x => x.href));
+      const hrefs = await p.locator("a.wr-g, a.wr-a, a.wn-g, a.wn-a").evaluateAll(a => a.map(x => x.href));
       hrefs.forEach(h => {
         const u = decodeURIComponent(h);
         // 37600 is Valkeakoski. Anything outside 131xx/132xx is off this round.
@@ -144,7 +144,7 @@ console.log("\ncore, normal origin");
   await t("Heikkilänkatu 4 is the Hämeenlinna one", async () => {
     await p.click('[data-pane="routes"]'); await p.waitForTimeout(150);
     await p.click('[data-route="1096020"]'); await p.waitForTimeout(300);
-    const all = (await p.locator("a.wr-g, a.wr-a").evaluateAll(a => a.map(x => x.href)))
+    const all = (await p.locator("a.wr-g, a.wr-a, a.wn-g, a.wn-a").evaluateAll(a => a.map(x => x.href)))
       .map(decodeURIComponent).join(" ");
     return all.includes("Heikkilänkatu 4, 13210 Hämeenlinna, Finland")
         && !/37600|Valkeakoski/.test(all);
@@ -201,6 +201,87 @@ console.log("\ncore, normal origin");
       if(prevEnd !== thisStart) return false;
     }
     return true;
+  });
+
+  /* ---- the whole night: all five routes as one chain --------------------
+     Same class of bug as the one that dropped 7 of 18 stops, but with 138 to
+     drop instead of 18, so it gets the same treatment: prove every stop of
+     every route appears somewhere in the set, prove no part is over the cap,
+     and prove the parts join up. */
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(250);
+
+  const nightWant = () => p.evaluate(() =>
+    DATA.routes.flatMap(r => (r.stops || []).map(s => s.street + " " + s.nr)));
+
+  await t("the whole night exists and is split into parts", async () => {
+    const n = await p.locator("a.wn-g").count();
+    const blurb = await p.locator("#night-blurb").innerText();
+    return n > 1 && /138 stops/.test(blurb) && /5 routes/.test(blurb);
+  });
+  await t("Google covers all 138 stops of the night, none dropped", async () => {
+    const want = await nightWant();
+    const hrefs = await p.locator("a.wn-g").evaluateAll(a => a.map(x => x.href));
+    const seen = new Set();
+    for(const h of hrefs) for(const a of addrsFromGoogle(h)) seen.add(a);
+    const missing = want.filter(w => !seen.has(w));
+    if(missing.length) console.log("      missing from night:", [...new Set(missing)].slice(0,8).join(", "));
+    return want.length === 138 && missing.length === 0;
+  });
+  await t("Apple covers all 138 stops of the night, none dropped", async () => {
+    const want = await nightWant();
+    const hrefs = await p.locator("a.wn-a").evaluateAll(a => a.map(x => x.href));
+    const seen = new Set();
+    for(const h of hrefs) for(const a of addrsFromApple(h)) seen.add(a);
+    const missing = want.filter(w => !seen.has(w));
+    if(missing.length) console.log("      missing from night:", [...new Set(missing)].slice(0,8).join(", "));
+    return missing.length === 0;
+  });
+  await t("no night part exceeds Google's 9-waypoint limit", async () => {
+    const hrefs = await p.locator("a.wn-g").evaluateAll(a => a.map(x => x.href));
+    return hrefs.length > 0 && hrefs.every(h => {
+      const w = new URL(h).searchParams.get("waypoints");
+      return !w || w.split("|").length <= 9;
+    });
+  });
+  await t("night parts overlap so no leg is lost between routes", async () => {
+    const hrefs = await p.locator("a.wn-g").evaluateAll(a => a.map(x => x.href));
+    for(let i = 1; i < hrefs.length; i++)
+      if(new URL(hrefs[i-1]).searchParams.get("destination") !==
+         new URL(hrefs[i]).searchParams.get("origin")) return false;
+    return true;
+  });
+  await t("the night runs in Pomo order, route after route", async () => {
+    const want = await nightWant();
+    const hrefs = await p.locator("a.wn-g").evaluateAll(a => a.map(x => x.href));
+    // addrsFromGoogle returns origin+destination first, which is fine for a
+    // coverage check and useless for an ordering one. Walk the link properly.
+    const inOrder = h => {
+      const u = new URL(h);
+      return [u.searchParams.get("origin")]
+        .concat((u.searchParams.get("waypoints") || "").split("|").filter(Boolean))
+        .concat([u.searchParams.get("destination")])
+        .map(a => a.split(",")[0]);
+    };
+    // Rebuild the chain from the links, dropping each seam stop's repeat.
+    const chain = [];
+    hrefs.forEach((h, i) => inOrder(h).forEach((a, j) => {
+      if(i && j === 0) return;          // the seam: already the previous part's end
+      chain.push(a);
+    }));
+    return chain.length === want.length && chain.every((a, i) => a === want[i]);
+  });
+  await t("each night part is labelled with the routes it spans", async () => {
+    const tags = await p.locator(".nightlist .nrow .nd b").allInnerTexts();
+    const ids = ["1096016","1096017","1096018","1096019","1096020"];
+    return tags.length > 1 && tags.every(x => ids.some(id => x.includes(id)));
+  });
+  /* The combined map is drawn from his own pins, so on a fresh phone there is
+     nothing to draw. Silence would read as a broken feature — it has to either
+     show the map or say why it can't. */
+  await t("the combined map either draws or says why it cannot", async () => {
+    const txt = await p.locator("#pane-routes").innerText();
+    const drawn = await p.locator("#nightmap").count();
+    return drawn ? /doors pinned/i.test(txt) : /every door on it/i.test(txt);
   });
 
   await t("per-stop links follow the Google preference", async () => {
@@ -478,6 +559,49 @@ console.log("\nfind, with a mocked fix");
   await p.reload(); await p.waitForTimeout(900);
   await t("photo survives reload", async () => (await p.locator(".stop.current .shot img").count()) === 1);
   await t("pins survive reload", async () => (await p.locator(".pin.set").count()) >= 2);
+
+  /* ---- the combined all-routes map ---------------------------------------
+     Everything above pins doors on one route, so the whole-night map takes its
+     "nothing to draw yet" branch and the drawing code never actually runs. Pin
+     a couple of doors on a second route and make it draw for real — a canvas
+     that throws or comes out blank would otherwise ship unnoticed. */
+  await ctx.setGeolocation({ latitude: 61.0048, longitude: 24.4642, accuracy: 8 });
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(200);
+  await p.click('[data-route="1096017"]'); await p.waitForTimeout(450);
+  await p.click("#bigBtn"); await p.waitForTimeout(600);
+  await ctx.setGeolocation({ latitude: 61.0056, longitude: 24.4669, accuracy: 8 });
+  await p.waitForTimeout(750);
+  await p.click("#bigBtn"); await p.waitForTimeout(600);
+  await p.click('[data-pane="routes"]'); await p.waitForTimeout(500);
+
+  await t("the all-routes map draws once two routes have pins", async () => await p.evaluate(() => {
+    const c = document.querySelector("#nightmap");
+    if(!c) return false;
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    const bg = d[0] + "," + d[1] + "," + d[2];
+    let diff = 0;
+    for(let i = 0; i < d.length; i += 4)
+      if(d[i] + "," + d[i+1] + "," + d[i+2] !== bg) diff++;
+    return diff > 1500 && diff < (d.length / 4) * 0.25;   // drawn, but not a wash
+  }));
+  await t("each route on the combined map gets its own colour", async () => await p.evaluate(() => {
+    const d = document.querySelector("#nightmap")
+      .getContext("2d").getImageData(0, 0, 900, 900).data;
+    const has = ([r, g, b]) => {
+      for(let i = 0; i < d.length; i += 4)
+        if(Math.abs(d[i]-r) < 10 && Math.abs(d[i+1]-g) < 10 && Math.abs(d[i+2]-b) < 10) return true;
+      return false;
+    };
+    return has([255,130,0]) && has([61,220,151]);         // 1096016 and 1096017
+  }));
+  await t("the combined map counts pins from every route, not just this one", async () => {
+    const cap = await p.locator(".mapwrap .cap").last().innerText();
+    const m = cap.match(/(\d+) of (\d+) doors pinned/);
+    return !!m && +m[1] >= 4 && +m[2] === 138;
+  });
+  await t("the whole-night links survive a route switch", async () =>
+    (await p.locator("a.wn-g").count()) > 1 && (await p.locator("a.wn-a").count()) > 1);
+
   await t("no uncaught errors", async () => errs.length === 0);
   await ctx.close();
 }

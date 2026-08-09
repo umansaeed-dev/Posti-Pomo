@@ -298,6 +298,37 @@ body{
   text-transform:uppercase;color:var(--dim);
 }
 
+/* ---------- the whole night: five routes as one chain ---------------------
+   Fourteen parts as fourteen little chips would be unreadable at 3am. One row
+   per part instead, each saying where it starts and where it ends, with both
+   map apps on the right of it. */
+.nightlist{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.nrow{display:flex;align-items:center;gap:9px;padding:9px 10px;border-top:1px solid var(--line-soft)}
+.nrow:first-child{border-top:0}
+.nrow .np{
+  flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:var(--surface-3);
+  color:var(--muted);font-family:var(--mono);font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.nrow .nd{flex:1 1 auto;min-width:0}
+.nrow .nd b{
+  display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  color:var(--dim);font-weight:700;
+}
+/* Wraps rather than truncating: where a part ends is the whole point of the
+   row, and an ellipsis eats exactly that. */
+.nrow .nd span{display:block;font-size:13px;color:var(--text);line-height:1.35}
+.nrow a.nb{
+  flex:0 0 auto;text-decoration:none;background:var(--surface-3);
+  border:1px solid var(--line);border-radius:10px;
+  padding:6px 7px;min-width:46px;text-align:center;color:var(--muted);
+}
+/* Named, not just an icon. ⚫ on a near-black card is close to invisible, and
+   at 3am you should not have to work out which circle is which map. */
+.nrow a.nb .ic{display:block;font-size:14px;line-height:1.1}
+.nrow a.nb .lb{display:block;font-size:9px;font-weight:700;letter-spacing:.04em;margin-top:2px}
+.nrow a.nb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 .avg{font-family:var(--mono);font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 
 /* ---------- whole-route view ---------------------------------------------
@@ -1606,6 +1637,60 @@ function wholeRouteRow(r){
     "</div>";
 }
 
+/* ---- the whole night ----------------------------------------------------
+   Each route already offers its own whole-route link. This answers the other
+   question: what does the entire shift look like, end to end? The five routes
+   run back to back out of the same depot, so they concatenate into one chain
+   in Pomo order.
+
+   No map app takes that in a single link, and there is no honest way to
+   pretend otherwise. Google caps a route at nine waypoints and has no URL at
+   all that drops a hundred named pins on a map; Apple's chain is undocumented
+   and truncates. So the night splits into parts exactly the way one long route
+   does — every part starting on the stop the last one ended on, so no leg of
+   the shift is missing from the set. It costs more taps, not less coverage.
+
+   For seeing all of it genuinely at once, the drawn map underneath is the
+   answer the map apps cannot give: every door, all five routes, one picture.
+
+   Stop keys are unique across the whole book, which is what lets one flat list
+   carry stops from five different routes and still know which route each came
+   from. */
+const ROUTE_HUE = ["#ff8200", "#3ddc97", "#5aa9ff", "#ffd166", "#c792ea"];
+function routeHue(i){ return ROUTE_HUE[i % ROUTE_HUE.length]; }
+
+function nightChain(){
+  const stops = [], owner = {};
+  for(const r of DATA.routes)
+    for(const s of (r.stops || [])){ stops.push(s); owner[s.k] = r.id; }
+  return { stops, owner };
+}
+
+function allRoutesRow(){
+  const { stops, owner } = nightChain();
+  if(stops.length < 2) return "";
+  const segs = routeSegments(stops);
+
+  return '<div class="nightlist">' + segs.map((seg, i) => {
+    const ids = [...new Set(seg.stops.map(s => owner[s.k]))];
+    // A part that straddles two routes says so — that is the leg where you
+    // finish one round and start the next, and it is easy to lose.
+    const tag = ids.length === 1 ? ids[0] : ids[0] + " → " + ids[ids.length - 1];
+    const a = seg.stops[0], b = seg.stops[seg.stops.length - 1];
+    const link = (cls, href, icon, app) =>
+      '<a class="nb ' + cls + '" href="' + esc(href) + '" target="_blank" rel="noopener"' +
+      ' aria-label="Part ' + (i + 1) + ' of the night in ' + app + ' Maps">' +
+      '<span class="ic">' + icon + '</span><span class="lb">' + app + "</span></a>";
+    return '<div class="nrow">' +
+      '<span class="np">' + (i + 1) + "</span>" +
+      '<span class="nd"><b>' + esc(tag) + "</b><span>" +
+        esc(a.street + " " + a.nr) + " → " + esc(b.street + " " + b.nr) + "</span></span>" +
+      link("wn-g", googleLink(seg), "🟢", "Google") +
+      link("wn-a", appleLink(seg), "⚫", "Apple") +
+    "</div>";
+  }).join("") + "</div>";
+}
+
 /* =========================================================================
    4. PROGRESS + PACE
    ========================================================================= */
@@ -2413,6 +2498,115 @@ function drawMap(){
   }
 }
 
+/* Every pinned door of the whole shift on one canvas, one colour per route.
+   This is the "all of it at once" picture no map app will hand you: Google has
+   no URL that drops 138 named pins, and both apps cap a route long before that.
+   Drawing it costs nothing and needs no signal — but it can only show doors you
+   have already pinned, and those arrive on their own every time you tap
+   Delivered. Night one it is empty; by the end of the week it is your map. */
+function drawNightMap(){
+  const cv = $("#nightmap");
+  if(!cv) return;
+
+  const pts = [];
+  DATA.routes.forEach((r, ri) => (r.stops || []).forEach(s => {
+    const p = POS[sid(r, s)];
+    if(p) pts.push({ ri, s, p });
+  }));
+  if(pts.length < 2) return;
+
+  const all = pts.map(x => x.p).concat(GEO.pos ? [GEO.pos] : []);
+  const lats = all.map(p => p.lat), lons = all.map(p => p.lon);
+  const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+  const kx = Math.cos(rad(midLat));
+
+  const pad = 74;
+  const W = cv.width, H = cv.height;
+  const xs = lons.map(l => l * kx);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const y0 = Math.min(...lats), y1 = Math.max(...lats);
+  const sc = Math.min((W - pad*2) / Math.max(x1-x0, 1e-9), (H - pad*2) / Math.max(y1-y0, 1e-9));
+  const px = p => pad + (p.lon*kx - x0) * sc + (W - pad*2 - (x1-x0)*sc)/2;
+  const py = p => H - pad - (p.lat - y0) * sc - (H - pad*2 - (y1-y0)*sc)/2;
+
+  const css = getComputedStyle(document.documentElement);
+  const c = (n, f) => (css.getPropertyValue(n) || f).trim();
+  const g = cv.getContext("2d");
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = c("--surface", "#0e1420");
+  g.fillRect(0, 0, W, H);
+
+  // one dashed trail per route, in that route's colour
+  DATA.routes.forEach((r, ri) => {
+    const own = pts.filter(x => x.ri === ri);
+    if(own.length < 2) return;
+    g.strokeStyle = routeHue(ri);
+    g.globalAlpha = .45;
+    g.lineWidth = 5; g.lineJoin = "round"; g.setLineDash([14, 10]);
+    g.beginPath();
+    own.forEach((x, i) => i ? g.lineTo(px(x.p), py(x.p)) : g.moveTo(px(x.p), py(x.p)));
+    g.stroke();
+    g.globalAlpha = 1; g.setLineDash([]);
+  });
+
+  const marks = pts.map(x => ({ x, X: px(x.p), Y: py(x.p), rad: 13 }));
+  marks.forEach(m => {
+    g.beginPath(); g.arc(m.X, m.Y, m.rad, 0, Math.PI*2);
+    g.fillStyle = routeHue(m.x.ri); g.fill();
+    g.strokeStyle = c("--ink", "#05070d"); g.lineWidth = 3; g.stroke();
+  });
+
+  /* One label per street per route, not one per door. A hundred and thirty
+     house numbers would be a wall of text; the street names are what tell you
+     where you are. Anything that cannot be placed clear of a marker and of the
+     labels already down is left off rather than drawn on top of them. */
+  const placed = [];
+  const H_LBL = 30;
+  const seen = new Set();
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = "600 25px system-ui,sans-serif";
+  marks.forEach(m => {
+    const key = m.x.ri + "/" + m.x.s.street;
+    if(seen.has(key)) return;
+    seen.add(key);
+    const label = m.x.s.street;
+    const half = g.measureText(label).width / 2;
+    const lx = Math.min(W - 8 - half, Math.max(8 + half, m.X));
+    const clear = y => {
+      if(y < H_LBL/2 || y > H - H_LBL/2) return false;
+      if(placed.some(q => Math.abs(q.x - lx) < (q.w + half*2)/2 + 10
+                       && Math.abs(q.y - y) < H_LBL)) return false;
+      return !marks.some(o => Math.abs(o.X - lx) < half + o.rad + 4
+                           && Math.abs(o.Y - y) < o.rad + H_LBL/2);
+    };
+    const above = m.Y - m.rad - 18, below = m.Y + m.rad + 18;
+    const y = [above, below, above - 30, below + 30].find(clear);
+    if(y == null) return;
+    placed.push({ x: lx, y, w: half*2 });
+    g.fillStyle = routeHue(m.x.ri);
+    g.fillText(label, lx, y);
+  });
+
+  // legend, drawn last so nothing can be scribbled over it
+  const shown = DATA.routes.map((r, ri) => ({ r, ri })).filter(o => pts.some(x => x.ri === o.ri));
+  g.textAlign = "left"; g.font = "700 24px ui-monospace,monospace";
+  shown.forEach((o, i) => {
+    const y = 28 + i * 34;
+    g.fillStyle = c("--surface", "#0e1420");
+    g.fillRect(4, y - 16, 190, 32);
+    g.fillStyle = routeHue(o.ri);
+    g.beginPath(); g.arc(22, y, 10, 0, Math.PI*2); g.fill();
+    g.fillText(o.r.id, 40, y + 1);
+  });
+
+  if(GEO.pos){
+    const X = px(GEO.pos), Y = py(GEO.pos);
+    g.beginPath(); g.arc(X, Y, 15, 0, Math.PI*2);
+    g.fillStyle = c("--good", "#3ddc97"); g.fill();
+    g.strokeStyle = c("--ink", "#05070d"); g.lineWidth = 5; g.stroke();
+  }
+}
+
 /* =========================================================================
    7. ROUTES PANE
    ========================================================================= */
@@ -2437,6 +2631,46 @@ function renderRoutes(){
         "</span>" +
       "</button>"
     );
+  }
+
+  // ---- the whole night, all five routes at once ---------------------------
+  {
+    const { stops } = nightChain();
+    const segs = stops.length > 1 ? routeSegments(stops) : [];
+    const pins = DATA.routes.reduce((n, r) => n + pinnedCount(r), 0);
+    const p = 'style="margin:0;color:var(--muted);font-size:13.5px;line-height:1.5"';
+    const c = ['<div class="card"><h3>The whole night<span class="sub">all five routes, end to end</span></h3>'];
+
+    c.push("<p " + p + ' id="night-blurb">' +
+      "<b>" + stops.length + " stops</b> across " + DATA.routes.length +
+      " routes, in Pomo order, each one starting back at the depot. " +
+      "No map app will take that as a single link — Google caps a route at nine waypoints " +
+      "and Apple's chain truncates — so the night is cut into <b>" + segs.length + " parts</b> " +
+      "of at most " + MAX_STOPS_PER_LINK + " stops. Every part starts on the stop the one before " +
+      "it ended on, so nothing between them is missing.</p>");
+
+    if(segs.length) c.push('<div style="margin-top:12px">' + allRoutesRow() + "</div>");
+
+    if(pins >= 2){
+      c.push('<div class="mapwrap" style="margin-top:12px">' +
+        '<canvas id="nightmap" width="900" height="900"></canvas>' +
+        '<span class="cap">' + pins + " of " + stops.length +
+        " doors pinned · every route, one map</span></div>");
+      c.push('<p style="margin:10px 0 0;color:var(--muted);font-size:13.5px;line-height:1.5">' +
+        "One colour per route, drawn from your own pins. Street names are placed once per " +
+        "route; where two would overlap, the second is left off rather than smeared over the " +
+        "first.</p>");
+    }else{
+      c.push('<p style="margin:12px 0 0;color:var(--muted);font-size:13.5px;line-height:1.5">' +
+        "<b>The one picture with every door on it</b> gets drawn right here, one colour per " +
+        "route — but it comes from your own pins, and you have " +
+        (pins === 1 ? "one so far" : "none yet") + ". Every time you tap <b>Delivered</b> the " +
+        "phone remembers where you were standing, so it fills itself in as you work. " +
+        "No map service can do this part: half these boxes sit in back yards tens of metres " +
+        "off the road, which is exactly where an address drops you in the wrong spot.</p>");
+    }
+    c.push("</div>");
+    parts.push(c.join(""));
   }
 
   parts.push('<div class="card"><h3>Tonight</h3>' + renderDayStats() + "</div>");
@@ -2465,6 +2699,7 @@ function renderRoutes(){
     '<div class="btn-row"><button class="btn danger" data-clear-day="1">Clear tonight’s ticks</button></div></div>');
 
   $("#pane-routes").innerHTML = parts.join("");
+  drawNightMap();
   const dim = $("#dim");
   if(dim) dim.addEventListener("input", e => {
     PREFS.dim = +e.target.value; save(K.prefs, PREFS);
