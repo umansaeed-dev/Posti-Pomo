@@ -1979,6 +1979,301 @@ const SEED = {
   flag:"Grouped stop: numbers 1, 2 and 3 at Nukarintie 48 share one mailbox in the yard, per the route notes (same convention as the Vuohiniementie 22/21/14/13/11 shared-mailbox stop on page 6).",
   papers:{ HASA:1 }, apts:[] },
       ]
+    },
+    {
+      id: "1656102", from: "00:15", to: "07:00", standalone: true,
+      pagesTotal: 5, pagesEntered: 5,
+      // A third area, its own night: Turenki V — routes 1656100, 1656101,
+      // 1656102 and 1656103, sharing the same Lautatarhankatu depot as the
+      // other two areas but delivering in Turenki (a separate post town in
+      // Janakkala, not Hämeenlinna) with no keys needed. Kept out of "the
+      // whole night" chain for the same reason as 1096086 — see the
+      // `standalone` flag and chainedRoutes(). Every stop here also carries
+      // its own `city:"Turenki"` (except the shared depot stop) so map links
+      // resolve to the right town rather than defaulting to DATA.city.
+      // Totals below are the Pomo printed totals for this route; tallying
+      // the 142 stops actually entered gives the exact same numbers (HS 5,
+      // HASA 28) — a clean reconciliation, unlike 1096086.
+      totals: { HS:5, HASA:28 },
+      // Two short stretches (see the flags on individual stops) had no photo
+      // overlap linking them to their neighbours, so their exact position is
+      // a best guess rather than confirmed. A few Rälssitie shared-mailbox
+      // stops were bundled by pattern-matching neighbouring stops rather than
+      // an explicit on-screen note — also flagged individually.
+      stops: [
+{ k:"g1", street:"Lautatarhankatu", nr:"5", tag:"START",
+  at:"Posti yard.",
+  next:"From the end of the previous area: turn to right and right again on Kiipulantie, turn right on Pehtorintie, turn right on Rälssätie.",
+  papers:{}, apts:[] },
+
+{ k:"g2", street:"Pirttipolku", nr:"1-4", city:"Turenki",
+  at:"Right side, mailboxes at the beginning of Pirttipolku. Shared mailbox bank serving house numbers 1, 2, 3, 4; HASA chip shown on unit 3.",
+  next:"Continue on Rälssitie.",
+  flag:"Bundled: several house numbers share one mailbox bank per the on-screen note.",
+  papers:{ HASA:1 }, apts:[] },
+
+{ k:"g3", street:"Aittapolku", nr:"1-7", city:"Turenki",
+  at:"Right side, mailboxes at the beginning of Aittapolku. Shared mailbox bank serving units 1 through 7.",
+  next:"Continue on Rälssitie.",
+  flag:"Bundled: several house numbers share one mailbox bank per the on-screen note. The 1-2 / 3-7 split was reconstructed across two overlapping photos.",
+  papers:{}, apts:[] },
+
+{ k:"g4", street:"Saunapolku", nr:"1-8", city:"Turenki",
+  at:"Right side, mailboxes at the beginning of Saunapolku. Shared mailbox bank, units 1-8. HASA on units 1 and 4; HS on unit 7.",
+  next:"Continue to the end of Rälssitie, turn around.",
+  flag:"Bundled: several house numbers share one mailbox bank per the on-screen note.",
+  papers:{ HASA:2, HS:1 }, apts:[] },
+
+{ k:"g5", street:"Rälssitie", nr:"15", city:"Turenki",
+  at:"Shared mailbox group, units 1-11. On-screen note (awkward phrasing, transcribed as legible): \"15 group is at same direction as road.\"",
+  next:"",
+  flag:"Order versus the source photos isn't fully certain here — this note's text was split across two overlapping photos and may be missing a word or two in the middle; also, unlike neighboring Rälssitie 5/7/1a, no explicit 'mailboxes' note was visible for this specific stop, so the shared-mailbox bundling is inferred from the matching unit-list pattern. Worth confirming before relying on it.",
+  papers:{}, apts:[] },
+
+{ k:"g6", street:"Rälssitie", nr:"13", city:"Turenki",
+  at:"Shared mailbox group, units 1-12.",
+  next:"",
+  flag:"Bundled by inference from the matching unit-list pattern of neighboring Rälssitie stops — no explicit 'mailboxes' note was captured for this specific stop. Worth confirming.",
+  papers:{}, apts:[] },
+
+{ k:"g7", street:"Rälssitie", nr:"11", city:"Turenki",
+  at:"Shared mailbox group, units A-K (no unit \"I\" shown). HASA on units D and K.",
+  next:"Immediately to the right into the yard.",
+  flag:"Bundled by inference from the matching unit-list pattern of neighboring Rälssitie stops. Worth confirming.",
+  papers:{ HASA:2 }, apts:[] },
+
+{ k:"g8", street:"Rälssitie", nr:"9", city:"Turenki",
+  at:"Shared mailbox group, units A1-A7 and B1-B3.",
+  next:"Go back, continue on Rälssitie towards the right and turn right into the next yard.",
+  flag:"Bundled by inference from the matching unit-list pattern of neighboring Rälssitie stops. Worth confirming.",
+  papers:{}, apts:[] },
+
+{ k:"g9", street:"Rälssitie", nr:"5", city:"Turenki",
+  at:"Immediately on the left, mailboxes on the trash shed's wall. Units A1-A6 and B7-B12.",
+  next:"Continue to the end of the yard.",
+  flag:"Bundled: explicit shared-mailbox note on screen.",
+  papers:{}, apts:[] },
+
+{ k:"g10", street:"Rälssitie", nr:"7", city:"Turenki",
+  at:"Mailboxes on the trash shed's wall (units B9-B13), plus a separate regular mailbox bank (units A1-A8).",
+  next:"Return, continue on Rälssitie towards the right.",
+  flag:"Bundled: explicit shared-mailbox note on screen. Note the B-units and A-units were shown on opposite sides of a page break (end of page 1 / start of page 2) — combined here into one stop; worth confirming the app didn't intend two separate stop entries.",
+  papers:{}, apts:[] },
+
+{ k:"g11", street:"Rälssitie", nr:"3", city:"Turenki",
+  at:"Shared mailbox group, units A1-A6 and B7-B11.",
+  next:"Turn right on Pehtoorintie.",
+  flag:"Bundled by inference from the matching unit-list pattern of neighboring Rälssitie stops. Worth confirming.",
+  papers:{}, apts:[] },
+
+{ k:"g12", street:"Rälssitie", nr:"1a", city:"Turenki",
+  at:"Right side, mailboxes in the rowhouse's yard. Units 1-4.",
+  next:"",
+  flag:"Bundled: explicit shared-mailbox note on screen.",
+  papers:{}, apts:[] },
+
+{ k:"g13", street:"Rälssitie", nr:"1b", city:"Turenki",
+  at:"Same rowhouse yard as 1a. Units 5-12.",
+  next:"Turn right on Kannustie and to right on Aisakuja.",
+  flag:"Bundled: continuation of the 1a rowhouse-yard mailbox bank.",
+  papers:{}, apts:[] },
+
+{ k:"g14", street:"Aisakuja", nr:"1", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g15", street:"Aisakuja", nr:"2", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g16", street:"Aisakuja", nr:"3", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g17", street:"Aisakuja", nr:"4", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g18", street:"Aisakuja", nr:"5", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g19", street:"Aisakuja", nr:"6", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g20", street:"Aisakuja", nr:"7", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g21", street:"Aisakuja", nr:"8", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g22", street:"Aisakuja", nr:"10", city:"Turenki", at:"", next:"Turn around, turn right and to on Satulakuja.", papers:{ HASA:1 }, apts:[] },
+
+{ k:"g23", street:"Satulakuja", nr:"1", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g24", street:"Satulakuja", nr:"2", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g25", street:"Satulakuja", nr:"3", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g26", street:"Satulakuja", nr:"4", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g27", street:"Satulakuja", nr:"5", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g28", street:"Satulakuja", nr:"6", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g29", street:"Satulakuja", nr:"7", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g30", street:"Satulakuja", nr:"8", city:"Turenki", at:"", next:"Turn around, turn right and to right on Länkikuja.", papers:{}, apts:[] },
+
+{ k:"g31", street:"Länkikuja", nr:"1", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g32", street:"Länkikuja", nr:"2", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g33", street:"Länkikuja", nr:"3", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g34", street:"Länkikuja", nr:"4", city:"Turenki", at:"",
+  next:"Do not turn your car here, turning point in the end of the street.",
+  papers:{}, apts:[] },
+{ k:"g35", street:"Länkikuja", nr:"5", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g36", street:"Länkikuja", nr:"6", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g37", street:"Länkikuja", nr:"7", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g38", street:"Länkikuja", nr:"8", city:"Turenki", at:"", next:"Turn around, turn right and to right on Luokkikuja.", papers:{}, apts:[] },
+
+{ k:"g39", street:"Luokkikuja", nr:"1", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g40", street:"Luokkikuja", nr:"2", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g41", street:"Luokkikuja", nr:"3", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g42", street:"Luokkikuja", nr:"4", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g43", street:"Luokkikuja", nr:"5", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g44", street:"Luokkikuja", nr:"6", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g45", street:"Luokkikuja", nr:"7", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g46", street:"Luokkikuja", nr:"8", city:"Turenki", at:"", next:"Turn around and to left on Kannustie.", papers:{ HASA:1 }, apts:[] },
+
+{ k:"g47", street:"Kannustie", nr:"17", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g48", street:"Kannustie", nr:"15", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g49", street:"Kannustie", nr:"13", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g50", street:"Kannustie", nr:"11", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g51", street:"Kannustie", nr:"9", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g52", street:"Kannustie", nr:"7", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g53", street:"Kannustie", nr:"5", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g54", street:"Kannustie", nr:"3", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g55", street:"Kannustie", nr:"1", city:"Turenki", at:"", next:"Turn right on Pehtoorintie and to right on Riimukuja.", papers:{}, apts:[] },
+
+{ k:"g56", street:"Riimukuja", nr:"2", city:"Turenki", at:"", next:"", papers:{ HS:1, HASA:1 }, apts:[] },
+{ k:"g57", street:"Riimukuja", nr:"4", city:"Turenki", at:"", next:"", papers:{ HS:1 }, apts:[] },
+{ k:"g58", street:"Riimukuja", nr:"6", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g59", street:"Riimukuja", nr:"8", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g60", street:"Riimukuja", nr:"10", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g61", street:"Riimukuja", nr:"12", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g62", street:"Riimukuja", nr:"14", city:"Turenki", at:"", next:"", papers:{ HS:1, HASA:1 }, apts:[] },
+{ k:"g63", street:"Riimukuja", nr:"16", city:"Turenki", at:"", next:"Turn around and return to the beginning of Riimukuja, turn then to right on Pehtoorinkuja.", papers:{}, apts:[] },
+
+{ k:"g64", street:"Pehtoorinkuja", nr:"18", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g65", street:"Pehtoorinkuja", nr:"22", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g66", street:"Pehtoorinkuja", nr:"36", city:"Turenki", at:"", next:"Return to the beginning of the road, turn right on Pehtoorintie, to right on Kiipulantie, turn right on Konttilantie, turn around at the mailboxes.", papers:{}, apts:[] },
+
+{ k:"g67", street:"Konttilantie", nr:"22", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g68", street:"Konttilantie", nr:"15", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g69", street:"Konttilantie", nr:"5", city:"Turenki", at:"", next:"Return to the beginning of the road, turn to right on Kiipulantie, turn right on Kontiotie and to left on Kivimäentie.", papers:{}, apts:[] },
+
+{ k:"g70", street:"Kivimäentie", nr:"18", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g71", street:"Kivimäentie", nr:"28", city:"Turenki", at:"", next:"300m", papers:{}, apts:[] },
+{ k:"g72", street:"Kivimäentie", nr:"53", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g73", street:"Kivimäentie", nr:"57", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g74", street:"Kivimäentie", nr:"59", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g75", street:"Kivimäentie", nr:"55", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g76", street:"Kivimäentie", nr:"65", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g77", street:"Kivimäentie", nr:"73", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g78", street:"Kivimäentie", nr:"78", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g79", street:"Kivimäentie", nr:"85", city:"Turenki", at:"", next:"", papers:{ HS:1 }, apts:[] },
+{ k:"g80", street:"Kivimäentie", nr:"71", city:"Turenki", at:"", next:"Turn around.", papers:{}, apts:[] },
+{ k:"g81", street:"Kivimäentie", nr:"25", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g82", street:"Kivimäentie", nr:"11", city:"Turenki", at:"", next:"Turn left on Kontiotie.", papers:{}, apts:[] },
+
+{ k:"g83", street:"Kontiotie", nr:"16", city:"Turenki", at:"", next:"700m", papers:{}, apts:[] },
+{ k:"g84", street:"Kontiotie", nr:"90", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g85", street:"Konttilansuo", nr:"116b", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g86", street:"Soininkulma", nr:"26", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g87", street:"Kontiotie", nr:"136", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g88", street:"Kontiotie", nr:"141", city:"Turenki", at:"",
+  next:"",
+  flag:"Order versus the source photos isn't fully certain here onward: this stop is the last one visible at the bottom of page 1/5, and the next photo begins fresh at the top of page 4/5 with Kontiotie 160. No photo captured whatever driving instruction bridges 141 to 160 (or confirms nothing was skipped) — worth confirming before relying on it.",
+  papers:{}, apts:[] },
+
+{ k:"g89", street:"Kontiotie", nr:"160", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g90", street:"Kontiotie", nr:"168", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g91", street:"Kontiotie", nr:"170", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g92", street:"Kontiotie", nr:"174", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g93", street:"Soininkulma", nr:"60", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g94", street:"Soininkulma", nr:"31", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g95", street:"Kontiotie", nr:"180", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g96", street:"Soininkulma", nr:"53", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g97", street:"Soininkulma", nr:"49", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g98", street:"Soininkulma", nr:"45", city:"Turenki", at:"",
+  next:"",
+  flag:"Order versus the source photos isn't fully certain here: no photo captured the transition from this stop to Kontiotie 230 below (the next photo starts fresh at 230), so any driving instruction and/or an intervening stop here may be missing, even though the paper totals reconcile fine overall. Worth confirming before relying on it.",
+  papers:{}, apts:[] },
+
+{ k:"g99", street:"Kontiotie", nr:"230", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g100", street:"Kontiotie", nr:"260", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g101", street:"Kontiotie", nr:"280", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g102", street:"Kontiotie", nr:"350", city:"Turenki", at:"", next:"Turn around, 2.3 km and turn right on Huhtolanmutka.", papers:{}, apts:[] },
+
+{ k:"g103", street:"Huhtolanmutka", nr:"10", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g104", street:"Huhtolanmutka", nr:"14", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g105", street:"Huhtolanmutka", nr:"15", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g106", street:"Huhtolanmutka", nr:"17", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g107", street:"Huhtolanmutka", nr:"18", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g108", street:"Huhtolanmutka", nr:"22", city:"Turenki", at:"", next:"Return to the beginning of the road, continue Kontiotie towards the right.", papers:{}, apts:[] },
+
+{ k:"g109", street:"Kontiotie", nr:"105", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g110", street:"Kontiotie", nr:"103", city:"Turenki", at:"",
+  next:"1 km to the beginning of Kontiotie, turn right on Kiipulantie and to left on Hartailantie.",
+  flag:"Order versus the source photos isn't fully certain immediately after this stop — no photo confirms the exact hand-off to the '1 km to the beginning of Kontiotie...' instruction. Worth confirming before relying on it.",
+  papers:{}, apts:[] },
+
+{ k:"g111", street:"Hartailantie", nr:"10", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g112", street:"Hartailantie", nr:"11", city:"Turenki", at:"", next:"Return, continue on Kiipulantie towards the left.", papers:{}, apts:[] },
+
+{ k:"g113", street:"Kiipulantie", nr:"251", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g114", street:"Kiipulantie", nr:"260", city:"Turenki", at:"", next:"500m", papers:{}, apts:[] },
+
+{ k:"g115", street:"Kiipulantie", nr:"302", city:"Turenki",
+  at:"Mailboxes in the curve. Units A and B.",
+  next:"",
+  flag:"Bundled: explicit shared-mailbox note (\"mailboxes in the curve\") on screen.",
+  papers:{}, apts:[] },
+
+{ k:"g116", street:"Kiipulantie", nr:"304", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g117", street:"Kiipulantie", nr:"301", city:"Turenki", at:"", next:"500m", papers:{}, apts:[] },
+{ k:"g118", street:"Kiipulantie", nr:"352", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g119", street:"Kiipulantie", nr:"350", city:"Turenki", at:"", next:"Left side, mailbox into the yard/at the door.", papers:{}, apts:[] },
+{ k:"g120", street:"Kiipulantie", nr:"393", city:"Turenki", at:"", next:"On left.", papers:{}, apts:[] },
+{ k:"g121", street:"Kiipulantie", nr:"421", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g122", street:"Kiipulantie", nr:"441", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+
+{ k:"g123", street:"Kiipulantie", nr:"475", city:"Turenki", at:"Left side.", next:"", papers:{}, apts:[] },
+
+{ k:"g124", street:"Kiipulantie", nr:"473", city:"Turenki",
+  at:"Stacked mailbox listing, units 2 and 1.",
+  next:"",
+  flag:"Bundled: two apartment/unit numbers were shown stacked in one blue block with no separate house-number split shown — treated as one shared-mailbox stop per the stacking convention.",
+  papers:{}, apts:[] },
+
+{ k:"g125", street:"Kiipulantie", nr:"507", city:"Turenki",
+  at:"Stacked mailbox listing, units 4 and 6.",
+  next:"Turn to right on Myllyoja for 500m, turn around at the mailbox.",
+  flag:"Bundled: two apartment/unit numbers were shown stacked in one blue block — treated as one shared-mailbox stop per the stacking convention. Note this is a different stop from the two other 'Kiipulantie 507' entries later in the route (see g132, g133, g135) — the source photos show several distinct 507-prefixed addresses; not merged into a single stop since each appeared as its own separately underlined block.",
+  papers:{}, apts:[] },
+
+{ k:"g126", street:"Kotimäentie", nr:"88", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g127", street:"Kotimäentie", nr:"72", city:"Turenki", at:"", next:"Continue on Kotimäentie towards the left.", papers:{}, apts:[] },
+{ k:"g128", street:"Kotimäentie", nr:"57", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g129", street:"Kotimäentie", nr:"37", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g130", street:"Kotimäentie", nr:"32", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g131", street:"Kotimäentie", nr:"5", city:"Turenki", at:"", next:"Turn right on Kiipulantie, turn left on Sahamäki, follow the GuestHouse guideposts to the front door.", papers:{ HASA:1 }, apts:[] },
+
+{ k:"g132", street:"Kiipulantie", nr:"507", city:"Turenki",
+  at:"Only 1 box that has a list of papers.",
+  next:"",
+  flag:"See note on g125 — this is a separate 'Kiipulantie 507' entry from the earlier stacked-unit stop and from the two 507f/507d entries on page 5; kept distinct as shown on screen.",
+  papers:{ HASA:6 }, apts:[] },
+
+{ k:"g133", street:"Kiipulantie", nr:"507f", city:"Turenki",
+  at:"Single mailbox, unit 1.",
+  next:"",
+  papers:{}, apts:[] },
+
+{ k:"g134", street:"Kiipulantie", nr:"507d", city:"Turenki",
+  at:"Stacked mailbox listing, units 3, 2, 1.",
+  next:"",
+  flag:"Bundled: stacked unit numbers in one blue block, per the stacking convention.",
+  papers:{}, apts:[] },
+
+{ k:"g135", street:"Kiipulantie", nr:"507f", city:"Turenki",
+  at:"",
+  next:"Return to the beginning of the road, continue on Kiipulantie towards the left.",
+  flag:"The house-number text here read \"507f\" again, immediately after the 507f and 507d entries above (g133, g134) — this may be a genuine third distinct address/entrance, or a possible duplicate/misread in the source app; the text itself was legible and clear in the photo, but the duplication is unconfirmed. Worth confirming before relying on it.",
+  papers:{}, apts:[] },
+
+{ k:"g136", street:"Kiipulantie", nr:"542", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+
+{ k:"g137", street:"Kulmatie", nr:"47", city:"Turenki", at:"At the beginning of Kulmatie.", next:"", papers:{}, apts:[] },
+{ k:"g138", street:"Kulmatie", nr:"65", city:"Turenki", at:"", next:"Turn left on Sarastontie.", papers:{}, apts:[] },
+
+{ k:"g139", street:"Sarastontie", nr:"11", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g140", street:"Sarastontie", nr:"13", city:"Turenki", at:"", next:"", papers:{ HASA:1 }, apts:[] },
+{ k:"g141", street:"Sarastontie", nr:"15", city:"Turenki", at:"", next:"", papers:{}, apts:[] },
+{ k:"g142", street:"Sarastontie", nr:"21", city:"Turenki", tag:"LAST", at:"The end.", next:"", papers:{}, apts:[] },
+      ]
     }
   ]
 };
@@ -2228,7 +2523,35 @@ const POSTCODE = {
   "Vuohiniementie":     "14300",
   "Yllöläntie":         "14300",
   "Äijänniitynmäki":    "14300",
-  "Äijänsuontie":       "14300"
+  "Äijänsuontie":       "14300",
+
+  // 14200 — Turenki, the largest population centre in Janakkala (a separate
+  // municipality from Hämeenlinna). Route 1656102's whole area. These stops
+  // also carry their own `city:"Turenki"` (see fullAddress()) since the town
+  // name itself differs, not just the code — same reasoning as the Renko
+  // block above, and again not checked street by street.
+  "Aisakuja":           "14200",
+  "Aittapolku":         "14200",
+  "Hartailantie":       "14200",
+  "Huhtolanmutka":      "14200",
+  "Kannustie":          "14200",
+  "Kiipulantie":        "14200",
+  "Kivimäentie":        "14200",
+  "Kontiotie":          "14200",
+  "Konttilansuo":       "14200",
+  "Konttilantie":       "14200",
+  "Kotimäentie":        "14200",
+  "Kulmatie":           "14200",
+  "Luokkikuja":         "14200",
+  "Länkikuja":          "14200",
+  "Pehtoorinkuja":      "14200",
+  "Pirttipolku":        "14200",
+  "Riimukuja":          "14200",
+  "Rälssitie":          "14200",
+  "Sarastontie":        "14200",
+  "Satulakuja":         "14200",
+  "Saunapolku":         "14200",
+  "Soininkulma":        "14200"
 };
 
 /* A stop you type in yourself under Data will name a street that isn't in the
@@ -2257,7 +2580,11 @@ resolveZips();
 
 function fullAddress(s){
   const zip = ZIP[s.k] || POSTCODE[s.street] || "13210";
-  return s.street + " " + s.nr + ", " + zip + " " + DATA.city + ", Finland";
+  // Most stops are in Hämeenlinna itself, but a route can name its own town
+  // (e.g. Turenki, a separate post town in Janakkala) via a per-stop `city` —
+  // stamping every address with the depot's town is exactly the Valkeakoski
+  // mistake this app was already burned by once, just one field over.
+  return s.street + " " + s.nr + ", " + zip + " " + (s.city || DATA.city) + ", Finland";
 }
 
 function hhmmToday(hhmm){

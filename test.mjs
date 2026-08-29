@@ -641,24 +641,25 @@ console.log("\naddress lookup, mocked geocoder");
   await t("the lookup button offers every unique address once", async () => {
     const label = await p.locator("[data-lookup]").innerText();
     const uniq = await p.evaluate(() => lookupJobs().all.length);
-    // 138 Katinen B stops + 479 route-1096086 stops = 617 raw. The depot opens
-    // all six routes now, so five of those collapse; three more addresses
-    // inside 1096086 itself repeat a street+number the source photos couldn't
-    // fully disambiguate (see its own in-app flags) and collapse too:
-    // 617 - 5 - 3 = 609.
-    return uniq === 609 && label.includes("609");
+    // 138 Katinen B + 479 route-1096086 + 142 route-1656102 = 759 raw. The
+    // depot collapses across all seven routes now (-6); three addresses
+    // inside 1096086 itself collapse (-3, see its own in-app flags); two
+    // addresses inside 1656102 itself collapse the same way, "Kiipulantie
+    // 507" and "Kiipulantie 507f" each appearing twice (-2):
+    // 759 - 6 - 3 - 2 = 748.
+    return uniq === 748 && label.includes("748");
   });
 
   await p.click("[data-lookup]");
   await p.waitForFunction(() => !LOOKUP.running &&
-    Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length >= 607,
+    Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length >= 746,
     null, { timeout: 60000 });
   await p.waitForTimeout(400);
 
-  await t("one request per unique address, none repeated", async () => calls === 609);
+  await t("one request per unique address, none repeated", async () => calls === 748);
   await t("good results are cached for offline use", async () => {
     const n = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
-    return n === 607;                                    // 609 minus the two bad ones
+    return n === 746;                                    // 748 minus the two bad ones
   });
   await t("a result in the wrong town is rejected, not cached", async () =>
     await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["mertapolku 2"]));
@@ -666,7 +667,7 @@ console.log("\naddress lookup, mocked geocoder");
     await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["salamanteri 3"]));
   await t("misses are offered again, successes are not", async () => {
     const label = await p.locator("[data-lookup]").innerText();
-    return label.includes("607 of 609");
+    return label.includes("746 of 748");
   });
 
   await t("the whole-night map now draws every located door", async () => await p.evaluate(() => {
@@ -728,7 +729,7 @@ console.log("\naddress lookup, mocked geocoder");
     await p.waitForTimeout(300);
     const kept = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
     const label = await p.locator("[data-lookup]").innerText();
-    return kept === 10 && label.includes("10 of 609");
+    return kept === 10 && label.includes("10 of 748");
   });
 
   await t("no uncaught errors", async () => errs.length === 0);
