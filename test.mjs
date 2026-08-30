@@ -641,23 +641,27 @@ console.log("\naddress lookup, mocked geocoder");
   await t("the lookup button offers every unique address once", async () => {
     const label = await p.locator("[data-lookup]").innerText();
     const uniq = await p.evaluate(() => lookupJobs().all.length);
-    // Same accounting as before, plus route-1096022's re-verification pass
-    // found one previously-missing stop (Poltinahontie 13) and added it —
-    // 1194 + 1 = 1195 raw, minus the same collapses as before:
-    // 1195 - 11 - 3 - 2 - 2 = 1177.
-    return uniq === 1177 && label.includes("1177");
+    // Same accounting as before (1177), plus route-1096021 (140 stops) — the
+    // 2nd and last-added route of the Kauriala C chain, completing all 5.
+    // 1177 + 140 = 1317 raw, minus the depot collapsing again (-1) minus one
+    // genuine cross-route coincidence: "Brahenkatu 1a" is a real stop in both
+    // 1096021 and 1096026 (a connecting street two different Kauriala C
+    // routes both happen to touch), so it collapses to one shared pin (-1),
+    // which is correct — it is the same physical building either way:
+    // 1317 - 1 - 1 = 1315.
+    return uniq === 1315 && label.includes("1315");
   });
 
   await p.click("[data-lookup]");
   await p.waitForFunction(() => !LOOKUP.running &&
-    Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length >= 1175,
+    Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length >= 1313,
     null, { timeout: 60000 });
   await p.waitForTimeout(400);
 
-  await t("one request per unique address, none repeated", async () => calls === 1177);
+  await t("one request per unique address, none repeated", async () => calls === 1315);
   await t("good results are cached for offline use", async () => {
     const n = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
-    return n === 1175;                                    // 1177 minus the two bad ones
+    return n === 1313;                                    // 1315 minus the two bad ones
   });
   await t("a result in the wrong town is rejected, not cached", async () =>
     await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["mertapolku 2"]));
@@ -665,7 +669,7 @@ console.log("\naddress lookup, mocked geocoder");
     await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["salamanteri 3"]));
   await t("misses are offered again, successes are not", async () => {
     const label = await p.locator("[data-lookup]").innerText();
-    return label.includes("1175 of 1177");
+    return label.includes("1313 of 1315");
   });
 
   await t("the whole-night map now draws every located door", async () => await p.evaluate(() => {
@@ -727,7 +731,7 @@ console.log("\naddress lookup, mocked geocoder");
     await p.waitForTimeout(300);
     const kept = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
     const label = await p.locator("[data-lookup]").innerText();
-    return kept === 10 && label.includes("10 of 1177");
+    return kept === 10 && label.includes("10 of 1315");
   });
 
   await t("no uncaught errors", async () => errs.length === 0);
