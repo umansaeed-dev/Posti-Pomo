@@ -3361,6 +3361,312 @@ const SEED = {
       ],
       flag:"Confirmed LAST stop — an explicit 'The end.' marker (with red underline, then an orange divider) appears directly after unit A39 in the photos. This route IS confirmed complete, unlike 1096022. Building papers banner chevron was visibly blank (confirmed zero papers for this address, not just uncaptured) and no HS/HASA chip was seen on any of the 39 units." }
   ]
+    },
+    /*
+     Route 1096024 — Kauriala C, 5th/last route in chain (1096026,1096021,1096022,1096023,1096024)
+     Transcribed from 39 photos. See accompanying chat summary for full notes on uncertainties.
+     pagesTotal: 7, pagesEntered: 7 (all 7 pages reached "The end." — route photographed completely)
+    */
+    {
+      id: "1096024", from: "00:30", to: "07:00", standalone: true,
+  pagesTotal: 7, pagesEntered: 7,
+  totals: { HS: 15, HASA: 24 }, // printed on-device route total (see discrepancy note in chat summary — confirmed chips in photos sum lower)
+  stops: [
+    { k:"k1", street:"Lautatarhankatu", nr:"5", tag:"START",
+      at:"Starting point (JÄTTÖPAIKKA), postcode 13110",
+      next:"From the end of the previous area: go back to right on Parolantie for 500m, turn left on Brahenkatu and to right on Eino Leinon katu",
+      papers:{}, apts:[],
+      flag:"Driving instruction referenced the previous route only as \"the previous area\", not as a short numeric form like \"023\" seen on 1096022/1096023 — transcribed verbatim." },
+
+    { k:"k2", street:"Eino Leinon Katu", nr:"11-13",
+      at:"5 entrances (A-E), all lock type KABA-badge. Building covers both street numbers 11 and 13.",
+      next:"",
+      papers:{ HS:1, HASA:2 },
+      apts:[
+        { f:"A - 1st floor", list:[["A1",[]],["A2",[]],["A3",[]]] },
+        { f:"A - 2nd floor", list:[["A4",[]],["A5",[]],["A6",[]]] },
+        { f:"A - 3rd floor", list:[["A7",[]],["A8",[]],["A9",[]]] },
+        { f:"B - 1st floor", list:[["B1",[]],["B2",[]],["B3",[]]] },
+        { f:"B - 2nd floor", list:[["B4",[]],["B5",[]],["B6",[]]] },
+        { f:"B - 3rd floor", list:[["B7",[]],["B8",[]],["B9",[]]] },
+        { f:"C - 1st floor", list:[["C1",[]],["C2",[]],["C3",["HASA"]]] },
+        { f:"C - 2nd floor", list:[["C4",[]],["C5",[]],["C6",[]]] },
+        { f:"C - 3rd floor", list:[["C7",[]],["C8",[]],["C9",[]]] },
+        { f:"D - 1st floor", list:[["D1",[]],["D2",[]],["D3",[]]] },
+        { f:"D - 2nd floor", list:[["D4",[]],["D5",[]],["D6",[]]] },
+        { f:"D - 3rd floor", list:[["D7",[]],["D8",[]],["D9",[]],["D10",[]]] },
+        { f:"E - 1st floor", list:[["E1",["HASA"]],["E2",[]],["E3",[]]] },
+        { f:"E - 2nd floor", list:[["E4",[]],["E5",[]],["E6",[]]] },
+        { f:"E - 3rd floor", list:[["E7",["HS"]],["E8",[]],["E9",[]]] }
+      ],
+      flag:"On-device gray 'Number of papers' subtotal widgets suggested entrance B carries 1 extra HASA and entrance D carries 1 extra HS + 1 extra HASA, but no individual unit row in the photographed B or D rosters showed a visible yellow chip (re-checked twice). Not included in top-level papers since I could not confirm which unit. Also: entrance D's 3rd floor showed 4 units (D7,D8,D9,D10) vs 3 units on every other floor/entrance in this building — flagged as irregular, transcribed as shown." },
+
+    { k:"k3", street:"Eino Leinon Katu", nr:"7",
+      at:"2 entrances, lock type iLOQ. On-device order was entrance B roster shown BEFORE entrance A roster (unusual vs. typical A-then-B ordering) — transcribed as observed; this stop straddles the Page 1/Page 2 boundary (B = bottom of page 1, A = top of page 2, with the street name re-shown as a page-2 header).",
+      next:"",
+      papers:{ HASA:1 },
+      apts:[
+        { f:"B - 1st floor", list:[["B1",[]],["B2",[]],["B3",[]]] },
+        { f:"B - 2nd floor", list:[["B4",[]],["B5",[]],["B6",["HASA"]]] },
+        { f:"B - 3rd floor", list:[["B7",[]],["B8",[]],["B9",[]]] },
+        { f:"A - 1st floor", list:[["A1",[]],["A2",[]],["A3",[]]] },
+        { f:"A - 2nd floor", list:[["A4",[]],["A5",[]],["A6",[]]] },
+        { f:"A - 3rd floor", list:[["A7",[]],["A8",[]],["A9",[]]] }
+      ] },
+
+    { k:"k4", street:"Eino Leinon Katu", nr:"3-5",
+      at:"Large complex, 4 entrances. On-device order was D, then C, then (note: \"A and B stairs into next yard\") B, then A. Entrances D=lock code KABA-badge; C, B, A=lock code 9098#. Building covers both street numbers 3 and 5. No paper chips found anywhere in this 64-unit building across any of the 4 entrances — re-checked the source photos twice to confirm; flagged as unusually zero for a building this size.",
+      next:"Across the road",
+      papers:{},
+      apts:[
+        { f:"D - 1st floor (code 9098#... actually KABA-badge)", list:[["D1",[]],["D2",[]],["D3",[]],["D4",[]]] },
+        { f:"D - 2nd floor", list:[["D5",[]],["D6",[]],["D7",[]],["D8",[]]] },
+        { f:"D - 3rd floor", list:[["D9",[]],["D10",[]],["D11",[]],["D12",[]]] },
+        { f:"D - 4th floor", list:[["D13",[]],["D14",[]],["D15",[]],["D16",[]]] },
+        { f:"C - 1st floor (code: 9098#)", list:[["C1",[]],["C2",[]],["C3",[]],["C4",[]]] },
+        { f:"C - 2nd floor", list:[["C5",[]],["C6",[]],["C7",[]],["C8",[]]] },
+        { f:"C - 3rd floor", list:[["C9",[]],["C10",[]],["C11",[]],["C12",[]]] },
+        { f:"C - 4th floor", list:[["C13",[]],["C14",[]],["C15",[]],["C16",[]]] },
+        { f:"B - 1st floor (code: 9098#)", list:[["B1",[]],["B2",[]],["B3",[]],["B4",[]]] },
+        { f:"B - 2nd floor", list:[["B5",[]],["B6",[]],["B7",[]],["B8",[]]] },
+        { f:"B - 3rd floor", list:[["B9",[]],["B10",[]],["B11",[]],["B12",[]]] },
+        { f:"B - 4th floor", list:[["B13",[]],["B14",[]],["B15",[]],["B16",[]]] },
+        { f:"A - 1st floor (code: 9098#)", list:[["A1",[]],["A2",[]],["A3",[]],["A4",[]]] },
+        { f:"A - 2nd floor", list:[["A5",[]],["A6",[]],["A7",[]],["A8",[]]] },
+        { f:"A - 3rd floor", list:[["A9",[]],["A10",[]],["A11",[]],["A12",[]]] },
+        { f:"A - 4th floor", list:[["A13",[]],["A14",[]],["A15",[]],["A16",[]]] }
+      ] },
+
+    { k:"k5", street:"Eino Leinon Katu", nr:"4",
+      at:"Mailboxes on the left. Single unit, no papers.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k6", street:"Eino Leinon Katu", nr:"6",
+      at:"4 mailbox units: A, B, C, D. No papers.",
+      next:"Turn around and go back", papers:{}, apts:[] },
+
+    { k:"k7", street:"Eino Leinon Katu", nr:"10 (visit 1)",
+      at:"Right side, into the yard. Unit 1.",
+      next:"",
+      papers:{}, apts:[],
+      flag:"\"Eino Leinon Katu 10\" is visited twice in this route, separated by other addresses (8, then 12 etc). Distinguished as visit 1 (unit 1) and visit 2 (unit 2) to avoid an address collision." },
+
+    { k:"k8", street:"Eino Leinon Katu", nr:"8",
+      at:"Single unit, no notes.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k9", street:"Eino Leinon Katu", nr:"10 (visit 2)",
+      at:"Unit 2.",
+      next:"", papers:{}, apts:[],
+      flag:"Second visit to Eino Leinon Katu 10 in this route — see k7." },
+
+    { k:"k10", street:"Eino Leinon Katu", nr:"12",
+      at:"At the gate.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k11", street:"Eino Leinon Katu", nr:"14",
+      at:"Right side, at the gate. Units B, C.",
+      next:"", papers:{ HS:1 }, apts:[] },
+
+    { k:"k12", street:"Eino Leinon Katu", nr:"16",
+      at:"Right side, door slot (everything to the same place). Units A, B.",
+      next:"", papers:{ HS:1 }, apts:[] },
+
+    { k:"k13", street:"Eino Leinon Katu", nr:"18, 20, 22",
+      at:"At the gate — three street numbers sharing one gate/delivery point, treated as one stop per app convention.",
+      next:"Turn right on Brahenkatu, rowhouse immediately on the right",
+      papers:{ HASA:1 }, apts:[],
+      flag:"Three house numbers (18, 20, 22) stacked as one block on-screen — captured as a single stop covering all three." },
+
+    { k:"k14", street:"Brahenkatu", nr:"20",
+      at:"Rowhouse, 3 entrances: A (units 1-5), B (units 6-13), C (units 14-19). No floor labels shown (flat mailbox numbering). No papers.",
+      next:"Turn right on Erottajakatu", papers:{}, apts:[] },
+
+    { k:"k15", street:"Erottajakatu", nr:"37",
+      at:"Right side, mailboxes into the yard. Units 1-6.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k16", street:"Erottajakatu", nr:"35",
+      at:"Right side, mailboxes into the yard. Units shown: 6, 5, 3, 1 (units 2 and 4 not shown on screen).",
+      next:"", papers:{}, apts:[],
+      flag:"Only 4 of what would normally be 6 sequential units were shown (6,5,3,1) — units 2 and 4 do not appear in the photo. Transcribed as shown; possibly they don't exist at this address, or were simply not visible." },
+
+    { k:"k17", street:"Erottajakatu", nr:"33",
+      at:"Right side, mailboxes into the courtyard. Units 1-6 (shown as 4,2,5,1,3,6).",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k18", street:"Erottajakatu", nr:"31",
+      at:"Right side, into the yard. Units 1-4.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k19", street:"Erottajakatu", nr:"29",
+      at:"\"29 into the same mailbox\" — units 1-6 all share one physical mailbox.",
+      next:"", papers:{}, apts:[],
+      flag:"Explicit on-screen note that units 1-6 share a single mailbox — one shared-mailbox stop covering 6 addresses." },
+
+    { k:"k20", street:"Erottajakatu", nr:"27",
+      at:"Units B, A.",
+      next:"", papers:{ HS:1 }, apts:[] },
+
+    { k:"k21", street:"Erottajakatu", nr:"25",
+      at:"Units A, B.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k22", street:"Erottajakatu", nr:"? (ovi 23)",
+      at:"Right side, to the door; door/entry code 23.",
+      next:"", papers:{ HASA:1 }, apts:[],
+      flag:"No plain house number shown — only a door-code icon reading \"23\". Used as a distinguishing label per convention; it's possible 23 is actually the street number and coincidentally also the door code." },
+
+    { k:"k23", street:"Erottajakatu", nr:"12 (visit 1)",
+      at:"No notes or units shown.",
+      next:"", papers:{}, apts:[],
+      flag:"\"Erottajakatu 12\" appears twice in close succession on-screen (this blank occurrence, then again a few rows later with a HASA chip — see k25). Both appear to be genuine distinct entries, not a photo-overlap artifact, since other addresses (21) appear between the two mentions in the same screenshot. Distinguished as visit 1 and visit 2." },
+
+    { k:"k24", street:"Erottajakatu", nr:"21",
+      at:"Units: B, 2, 4, 1. Mixed letter/number unit labels as shown on screen.",
+      next:"", papers:{ HASA:1 }, apts:[] },
+
+    { k:"k25", street:"Erottajakatu", nr:"12 (visit 2)",
+      at:"No units/floor shown, single HASA chip attached directly to the address.",
+      next:"", papers:{ HASA:1 }, apts:[],
+      flag:"Second appearance of Erottajakatu 12 — see k23." },
+
+    { k:"k26", street:"Erottajakatu", nr:"19",
+      at:"Unit 2.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k27", street:"Erottajakatu", nr:"? (ovi A)",
+      at:"Right side, mailbox next to the stairs; door/entry code A.",
+      next:"Turn right into the block of flat's yard",
+      papers:{}, apts:[],
+      flag:"No house number shown — only a door-code icon reading \"A\" (a letter, not a number, unusual for a door code). Used as distinguishing label per convention." },
+
+    { k:"k28", street:"Erottajakatu", nr:"17",
+      at:"Plain numbered building (no A/B/C letters), 3 floors, 6 units per floor, numbers 1-18 straight through.",
+      next:"Turn right from the yard, continue straight on Erottajakatu",
+      papers:{ HASA:2 },
+      apts:[
+        { f:"1st floor", list:[["1",[]],["2",["HASA"]],["3",[]],["4",[]],["5",[]],["6",[]]] },
+        { f:"2nd floor", list:[["7",["HASA"]],["8",[]],["9",[]],["10",[]],["11",[]],["12",[]]] },
+        { f:"3rd floor", list:[["13",[]],["14",[]],["15",[]],["16",[]],["17",[]],["18",[]]] }
+      ] },
+
+    { k:"k29", street:"Erottajakatu", nr:"15",
+      at:"Right side, mailboxes behind the bushes in the yard. Units 1-6 (shown as 3,2,1,4,5,6). Referenced again later ('Across Erottajakatu 15') as a wayfinding note only, not a second visit.",
+      next:"From the yard, turn left and right on Seminaarinkatu",
+      papers:{ HS:2 }, apts:[] },
+
+    { k:"k30", street:"Eureninkatu", nr:"11",
+      at:"Right side, on the fence.",
+      next:"Turn right on Eureninkatu", papers:{}, apts:[] },
+
+    { k:"k31", street:"Eureninkatu", nr:"9",
+      at:"Plain single mailbox, no further detail shown.",
+      next:"Turn back and then right", papers:{}, apts:[] },
+
+    { k:"k32", street:"Armas Launiksen Katu", nr:"5",
+      at:"2 entrances, lock type Red SENTO.",
+      next:"",
+      papers:{ HASA:2 },
+      apts:[
+        { f:"A - 1st floor", list:[["A1",["HASA"]],["A2",[]],["A3",[]]] },
+        { f:"A - 2nd floor", list:[["A4",["HASA"]],["A5",[]],["A6",[]]] },
+        { f:"A - 3rd floor", list:[["A7",[]],["A8",[]],["A9",[]]] },
+        { f:"B - 1st floor", list:[["B10",[]],["B11",[]],["B12",[]]] },
+        { f:"B - 2nd floor", list:[["B13",[]],["B14",[]],["B15",[]]] },
+        { f:"B - 3rd floor", list:[["B16",[]],["B17",[]],["B18",[]]] }
+      ] },
+
+    { k:"k33", street:"Lukiokatu", nr:"36",
+      at:"Left side, to the door slot (all the products to the same door slot). Units 1, 2.",
+      next:"Turn right", papers:{}, apts:[] },
+
+    { k:"k34", street:"Erottajakatu", nr:"10",
+      at:"Left side, behind the white wooden gate, mailboxes on the fence. Units A1, B2, B3, C4, C5.",
+      next:"Turn around",
+      papers:{ HS:2, HASA:1 }, apts:[] },
+
+    { k:"k35", street:"Erottajakatu", nr:"13",
+      at:"Right side. Mail box on the gate (street side): unit 1. Drive a little forward, then to the yard — group of mail boxes (apartments 2-4) in the yard by rubbish bins: units 2,3,4.",
+      next:"Across Erottajakatu 15", papers:{}, apts:[] },
+
+    { k:"k36", street:"Lukiokatu", nr:"38",
+      at:"Right side, mailboxes into the courtyard: units 2,3,4,5,7. To the door, into the same yard, across the mailbox grouping: unit 1. To the door: door/entry code 6 (ovi 6).",
+      next:"Turn right on Lukiokatu",
+      papers:{ HS:1, HASA:2 }, apts:[],
+      flag:"Papers: unit 7 carries both HS and HASA, unit 1 carries HASA." },
+
+    { k:"k37", street:"Lukiokatu", nr:"40",
+      at:"On the street side, door slot on the right. Units 4, 3.",
+      next:"Turn around and go back, to right on Erottajakatu", papers:{}, apts:[] },
+
+    { k:"k38", street:"Erottajakatu", nr:"9",
+      at:"On the street side, door slot, left side. Units B1, B2.",
+      next:"", papers:{ HS:1 }, apts:[],
+      flag:"Unit B2 is re-displayed again a few rows later (after Lukiokatu 41) in the source photos — treated as the same unit re-shown due to scroll overlap, not a second stop." },
+
+    { k:"k39", street:"Lukiokatu", nr:"41",
+      at:"Right side, mailboxes into the yard. Units A1, A2, B1.",
+      next:"", papers:{ HASA:1 }, apts:[] },
+
+    { k:"k40", street:"Lukiokatu", nr:"39",
+      at:"Unit 1.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k41", street:"Erottajakatu", nr:"6 (visit 1)",
+      at:"Units 2, 5, 3, 4. No notes.",
+      next:"Turn right on Lukiokatu, then turn right",
+      papers:{}, apts:[],
+      flag:"\"Erottajakatu 6\" is visited twice in this route (this occurrence, on page 6, and again later on page 7 after Armas Launiksen Katu 2 — see k48), both times with the identical unit list 2,5,3,4. This is a genuine repeat on-screen (separated by distinct intervening stops each time, confirmed via the Page 6/Page 7 boundary), not a photo-overlap duplicate — but the identical unit list for both visits is unusual and could indicate a data duplication in the source route itself. Distinguished as visit 1 and visit 2." },
+
+    { k:"k42", street:"Armas Launiksen Katu", nr:"3a, 3b",
+      at:"Two building-letter suffixes stacked as one block.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k43", street:"Armas Launiksen Katu", nr:"1b",
+      at:"Right side, door slot.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k44", street:"Armas Launiksen Katu", nr:"1",
+      at:"Right side, mailboxes on the fence. Units 1,2,3,4 (apartment/mailbox numbers, not to be confused with the street number 1).",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k45", street:"Armas Launiksen Katu", nr:"2",
+      at:"2 entrances. Entrance A lock type Protec red.",
+      next:"Turn right from the courtyard",
+      papers:{ HS:2, HASA:2 },
+      apts:[
+        { f:"A - 1st floor", list:[["A1",[]],["A2",[]],["A3",[]]] },
+        { f:"A - 2nd floor", list:[["A4",[]],["A5",[]],["A6",[]]] },
+        { f:"A - 3rd floor", list:[["A7",[]],["A8",[]],["A9",[]]] },
+        { f:"B - 1st floor", list:[["B10",[]],["B11",["HS","HASA"]],["B12",[]]] },
+        { f:"B - 2nd floor", list:[["B13",[]],["B14",[]],["B15",["HASA"]]] },
+        { f:"B - 3rd floor", list:[["B16",["HS"]],["B17",[]],["B18",[]]] }
+      ] },
+
+    { k:"k46", street:"Erottajakatu", nr:"6a",
+      at:"Right side, mailbox behind the gate.",
+      next:"", papers:{}, apts:[] },
+
+    { k:"k47", street:"Erottajakatu", nr:"6b",
+      at:"Unit 3: \"Check whether there is a subscription or not, customer starts new subscriptions often.\" Right side, mailboxes behind the bushes: units 4, 5.",
+      next:"", papers:{ HASA:1 }, apts:[] },
+
+    { k:"k48", street:"Erottajakatu", nr:"6 (visit 2)",
+      at:"Units 2, 5, 3, 4. No notes.",
+      next:"Turn right",
+      papers:{}, apts:[],
+      flag:"Second visit to Erottajakatu 6 in this route — see k41." },
+
+    { k:"k49", street:"Eureninkatu", nr:"5",
+      at:"Left side, mailbox into the yard. Units 5, 2.",
+      next:"Turn right", papers:{}, apts:[] },
+
+    { k:"k50", street:"Eureninkatu", nr:"3", tag:"LAST",
+      at:"Right side, mailboxes behind the fence. Units A1,A2,A3,A4,B5,B6,B7,B8,B9. The end.",
+      next:"",
+      papers:{}, apts:[] }
+  ]
     }
   ]
 };
@@ -3688,7 +3994,13 @@ const POSTCODE = {
   "Poltinahontie":      "13130",
   "Ravikatu":           "13130",
   "Rinkelinkatu":       "13130",
-  "Parolantie":         "13130"
+  "Parolantie":         "13130",
+  "Eino Leinon Katu":   "13130",
+  "Brahenkatu":         "13130",
+  "Erottajakatu":       "13130",
+  "Eureninkatu":        "13130",
+  "Armas Launiksen Katu": "13130",
+  "Lukiokatu":          "13130"
 };
 
 /* A stop you type in yourself under Data will name a street that isn't in the

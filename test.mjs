@@ -642,29 +642,31 @@ console.log("\naddress lookup, mocked geocoder");
     const label = await p.locator("[data-lookup]").innerText();
     const uniq = await p.evaluate(() => lookupJobs().all.length);
     // 138 Katinen B + 479 route-1096086 + 142 route-1656102 + 229
-    // route-1656103 + 28 route-1096022 + 15 route-1096023 = 1031 raw. The
-    // depot collapses across all ten routes now (-9); three addresses inside
-    // 1096086 collapse (-3); two inside 1656102 collapse ("Kiipulantie
-    // 507"/"507f" each twice, -2); inside 1656103, "Nitonkuja 6" and
-    // "Tanttalantie 100" each collapse once (-2), while the two address-less
-    // "ovi"-only stops use their door codes as distinct placeholder numbers
-    // so they do NOT collapse into each other; 1096022 and 1096023 have no
-    // internal repeats (1096023's two "Parolantie 20" entrances are kept
-    // distinct the same way, via distinguishing labels in their `nr`):
-    // 1031 - 9 - 3 - 2 - 2 = 1015.
-    return uniq === 1015 && label.includes("1015");
+    // route-1656103 + 28 route-1096022 + 15 route-1096023 + 50 route-1096024
+    // = 1081 raw. The depot collapses across all eleven routes now (-10);
+    // three addresses inside 1096086 collapse (-3); two inside 1656102
+    // collapse ("Kiipulantie 507"/"507f" each twice, -2); inside 1656103,
+    // "Nitonkuja 6" and "Tanttalantie 100" each collapse once (-2), while the
+    // two address-less "ovi"-only stops use their door codes as distinct
+    // placeholder numbers so they do NOT collapse into each other; 1096022
+    // has no internal repeats; 1096023's two "Parolantie 20" entrances and
+    // 1096024's genuine repeat visits (Eino Leinon Katu 10, Erottajakatu 6,
+    // Erottajakatu 12) and its own two address-less "ovi"-only stops are all
+    // kept distinct the same way, via distinguishing labels in `nr`:
+    // 1081 - 10 - 3 - 2 - 2 = 1064.
+    return uniq === 1064 && label.includes("1064");
   });
 
   await p.click("[data-lookup]");
   await p.waitForFunction(() => !LOOKUP.running &&
-    Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length >= 1013,
+    Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length >= 1062,
     null, { timeout: 60000 });
   await p.waitForTimeout(400);
 
-  await t("one request per unique address, none repeated", async () => calls === 1015);
+  await t("one request per unique address, none repeated", async () => calls === 1064);
   await t("good results are cached for offline use", async () => {
     const n = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
-    return n === 1013;                                    // 1015 minus the two bad ones
+    return n === 1062;                                    // 1064 minus the two bad ones
   });
   await t("a result in the wrong town is rejected, not cached", async () =>
     await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["mertapolku 2"]));
@@ -672,7 +674,7 @@ console.log("\naddress lookup, mocked geocoder");
     await p.evaluate(() => !JSON.parse(localStorage.getItem("pp.addrpos.v1"))["salamanteri 3"]));
   await t("misses are offered again, successes are not", async () => {
     const label = await p.locator("[data-lookup]").innerText();
-    return label.includes("1013 of 1015");
+    return label.includes("1062 of 1064");
   });
 
   await t("the whole-night map now draws every located door", async () => await p.evaluate(() => {
@@ -734,7 +736,7 @@ console.log("\naddress lookup, mocked geocoder");
     await p.waitForTimeout(300);
     const kept = await p.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("pp.addrpos.v1") || "{}")).length);
     const label = await p.locator("[data-lookup]").innerText();
-    return kept === 10 && label.includes("10 of 1015");
+    return kept === 10 && label.includes("10 of 1064");
   });
 
   await t("no uncaught errors", async () => errs.length === 0);
