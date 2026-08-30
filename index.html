@@ -3055,6 +3055,312 @@ const SEED = {
       ],
       flag:"NOT tagged LAST — no 'The end.' marker was found anywhere in the 31 photos, and this stop's own driving instruction ('...continue towards the right on Rinkelinkatu') implies at least one more stop follows that was not photographed. This is simply the last stop visible in the available photos (highest on-device clock time, 7:48). Also: mailbox letter 'Q' is genuinely absent from the photographed sequence between R and P — transcribed exactly as shown, not a transcription gap." }
   ]
+    },
+    /*
+     Route 1096023 — Sunday 30.8.2026
+     Shift start 00:30, service level 07:00
+     Starting point (JÄTTÖPAIKKA): 13110, Lautatarhankatu 5
+     Area/group: "KAURIALA C" — header text verbatim: "KAURIALA C - ROUTES 1096026,1096021,
+       1096022,1096023 AND 1096024 (IN THIS ORDER). THERE ARE KEYS FOR EVERY ROUTE."
+       => 1096023 is the 4th route in the Kauriala C chain (right after 1096022, before 1096024),
+       confirmed directly from the route-summary header screen (not assumed).
+       => standalone:true per the established convention for this route in this app (matches how
+          1096022 was entered) — it does not physically continue from the Katinen B chain.
+     Printed totals (route-summary screen): HS: 2, HASA: 28
+     Pages: 6 total, 6 photographed. A "The end." marker WAS found (last stop, Maijantie 8, unit
+       A39) — this route is CONFIRMED COMPLETE, unlike 1096022 which cut off mid-route.
+       pagesEntered: 6 (every page 1-6 has at least its start and end anchored by an explicit
+       "Page N/6" header or "Page N/6 ▶" button visible in the photos), though several INTERNAL
+       gaps exist within pages — see flags below and on individual stops.
+     ============================================================================
+     GLOBAL FLAGS / CAVEATS (please read before driving):
+     1. Along Parolantie, addresses 10/12/14/16/18/20/22/24/26/28/30/32 are all clearly part of
+        ONE large apartment/social-housing complex — each street number is effectively a separate
+        stairwell/entrance (up to 8 floors, up to ~47 units each), not a small standalone building.
+        Unit numbering restarts at 1 (or "A1") independently for EVERY entrance. Two of these
+        entrances share the SAME street number "20" (see flag 2).
+     2. "Parolantie 20" appears TWICE as a building header, with two completely different unit
+        ranges and paper totals: a LARGE entrance (papers banner HASA:7, units 1-40 across 8
+        floors, ends page 3) and a SMALL entrance (units 1-7 only, ends page 4, no banner value
+        captured). Verified by re-reading both source photos carefully — this is not a misread
+        digit. Represented here as two separate stops (j7 "20 (entrance A / large)" and j8
+        "20 (entrance B / small)"). VERIFY ON SITE which physical entrance is which.
+     3. Page boundary uncertainty: the printed page headers/buttons confirm Page 5/6 starts at
+        Parolantie 26 (explicit "Page 5/6" header) and Page 6/6 starts at Parolantie 32 (explicit
+        "Page 6/6" header) — BUT a screenshot of Parolantie 30's ending also carries a "Page 6/6 ▶"
+        button, and Parolantie 30's own driving instruction connects directly (no page-break UI
+        visible) from the end of Parolantie 28's "D" stairwell. This means the true page 5→6 split
+        happens somewhere inside or right after Parolantie 28, and Parolantie 30 + Parolantie 32 +
+        Maijantie 8 are ALL page 6 content, appearing in that address order (30 before 32) despite
+        32 owning the page's top-of-page header. The exact screenshot of that specific page-break
+        button was simply never taken. Stop ORDER is solid (confirmed via driving-instruction and
+        content-overlap chaining); only the page-count bookkeeping for exactly where page 5 ends
+        is uncertain. Does not affect pagesEntered (still 6/6, route reaches "The end.").
+     4. START stop's "next" instruction shows on-screen text "Route 022 => ...". Given the
+        route-summary header states the Kauriala C chain order as ...,1096022,1096023,1096024,
+        this almost certainly means "route 1096022" (this route starts where 1096022 finished),
+        but the screen itself only shows the shortened "022", never spelling out "1096022".
+        Transcribed verbatim; flagged rather than assumed (same pattern as 1096022's own "021").
+     5. Paper tally cross-check (Node-verified): summing every HS/HASA chip actually placed on a
+        door/roster-unit below gives HASA:23, HS:2 — HS matches the printed route total (HS:2)
+        EXACTLY. HASA falls short of the printed total (HASA:28) by 5. This shortfall is NOT forced
+        to match; it is attributable to specific, individually-flagged gaps in photo coverage:
+          - Parolantie 18: banner said HASA:5, only 4 chips found (47,45,24,5) — short by 1.
+          - Parolantie 20 (entrance A): banner said HASA:7, only 5 chips found (40,36,31,7, plus
+            the HS+HASA combo unit 18) — short by 2. Also: this entrance's own HS:1 (unit 18) was
+            never shown on ANY building banner at all (banner only displayed "HASA 7").
+          - Parolantie 24: banner said HASA:5, only 4 chips found (21,20,17,14) — short by 1.
+            Floors 1-2 (and the remainder of the 3rd floor below unit A13) were never captured.
+          - Parolantie 26: banner said HASA:2, but NO chip was found anywhere on any of its 12
+            captured units (A1-A6, B7-B12) across two separate photos — short by 2.
+        1+2+1+2 = 6 individually-identified gap-HASA, one more than the route-wide shortfall of 5;
+        this small overshoot is most likely a single misread/duplicate chip somewhere in a blurry
+        photo, or one of the "banner" numbers itself being slightly misread. Reported honestly
+        rather than force-adjusted. Per the schema rule, every stop's top-level `papers` below
+        equals the SUM OF ITS OWN ROSTER CHIPS (not the on-screen banner number) wherever the two
+        differ — matching the same policy used for 1096022's banner-mismatch stops.
+     6. Several "next" driving instructions between adjacent Parolantie entrances were not captured
+        at all in the photos (no screenshot exists showing that exact transition) — flagged
+        individually on stops j6, j8, j9, j10, j11. In most of these cases the two entrances appear
+        to be immediately adjacent stairwells of the same physical building (e.g. Parolantie 26
+        and 28 share the same door code "5926 / Iloq"), so a very short/no walk may be genuinely
+        correct rather than a missing photo — but this is not confirmed either way.
+     7. Two per-building door-lock/entry notes were transcribed verbatim as seen on screen because
+        their exact meaning/brand is not certain to this transcriber: "Sento no mark little ring"
+        (Parolantie 20, entrance A) and "Sento green" (Parolantie 30). "Abloy Easy" (Parolantie 24)
+        and "Code 5926 / Iloq" (Parolantie 26 & 28) are more standard lock/code notations and were
+        treated as normal door-code / lock-type notes in the `at` field.
+     8. Parolantie 20 (entrance B, small) shows its units in a genuinely unusual on-screen order:
+        "7, 6" then, under a "1st floor" label, "5, 1, 2, 3, 4" (i.e. NOT descending). Transcribed
+        exactly as shown rather than silently re-sorted; flagged on that stop.
+     9. Parolantie 22's single HASA:1 chip is attached to the building-wide "Deliver to mailbox on
+        Brahenkatu 21" note itself, not to any one of its 19 numbered units — treated as one
+        consolidated paper for the whole address (shared external mailbox), not unit-specific.
+     10. Parolantie 32's roster shows an unusual floor layout: units A1-A8 are ALL labelled "1st
+         floor", then units A9 through A17 (including a split "A11a"/"A11b") continue with NO
+         further floor-header change visible in the photos — transcribed exactly as shown; flagged
+         as an apparent floor-labelling quirk/gap rather than invented floor numbers.
+     11. Parolantie 20 (entrance A)'s 6th floor shows only 4 of what should likely be 5 units
+         (29,28,27,26 visible; the expected 5th/top unit "30" was not directly captured in any
+         photo) — included as an inferred unit and flagged on that stop.
+     ============================================================================
+    */
+    {
+      id: "1096023", from: "00:30", to: "07:00", standalone: true,
+  pagesTotal: 6, pagesEntered: 6,
+  totals: { HS:2, HASA:28 },
+  stops: [
+    { k:"j1",
+      street:"Lautatarhankatu",
+      nr:"5",
+      tag:"START",
+      at:"Starting point (JÄTTÖPAIKKA), postcode 13110",
+      next:"Route 022 ⇒ turn left on Maijantie, turn right on Parolantie for 850m, turn left on Torikatu, apartment building on the left (Pizzeria building)",
+      papers:{},
+      apts:[],
+      flag:"On-screen text literally says 'Route 022 =>' not '1096022'. Inferred to mean route 1096022 (previous route in the Kauriala C chain per the route-summary header) but this abbreviation was never spelled out on screen — flagging rather than assuming, same as done for 1096022's own '021' reference." },
+
+    { k:"j2",
+      street:"Parolantie",
+      nr:"10",
+      at:"Shops on Parolantie and Torikatu side (ground floor); entrance from Torikatu side",
+      next:"Turn around, turn right on Parolantie and to right into the yard",
+      papers:{},
+      apts:[
+        { f:"Entrance from Torikatu side", list:[["8",[]], ["7",[]], ["6",[]], ["5",[]], ["4",[]], ["3",[]], ["2",[]], ["1",[]]] }
+      ],
+      flag:"No floor breakdown was shown on screen for this small entrance (units 8 down to 1 listed flat, above ground-floor shops)." },
+
+    { k:"j3",
+      street:"Parolantie",
+      nr:"12",
+      at:"",
+      next:"Continue on Parolantie and to right into the yard",
+      papers:{HS:1, HASA:2},
+      apts:[
+        { f:"8th floor", list:[["40",["HS"]], ["39",[]], ["38",[]], ["37",[]], ["36",[]]] },
+        { f:"7th floor", list:[["35",[]], ["34",[]], ["33",[]], ["32",[]], ["31",[]]] },
+        { f:"6th floor", list:[["30",[]], ["29",[]], ["28",[]], ["27",[]], ["26",["HASA"]]] },
+        { f:"5th floor", list:[["25",[]], ["24",[]], ["23",["HASA"]], ["22",[]], ["21",[]]] },
+        { f:"4th floor", list:[["20",[]], ["19",[]], ["18",[]], ["17",[]], ["16",[]]] },
+        { f:"3rd floor", list:[["15",[]], ["14",[]], ["13",[]], ["12",[]], ["11",[]]] },
+        { f:"2nd floor", list:[["10",[]], ["9",[]], ["8",[]], ["7",[]], ["6",[]]] },
+        { f:"1st floor", list:[["5",[]], ["4",[]], ["3",[]], ["2",[]], ["1",[]]] }
+      ],
+      flag:"Building papers banner read 'HS:1, HASA:2' which exactly matches the per-unit chips found here (HS on unit 40; HASA on units 26 and 23) — high confidence. The tail instruction 'Continue on Parolantie and to right into the yard' was cut off mid-photo; reconstructed from the identical phrase used elsewhere in this route (Parolantie 14 -> 16 uses the exact same wording) — flagged as inferred, not directly confirmed for this specific transition." },
+
+    { k:"j4",
+      street:"Parolantie",
+      nr:"14",
+      at:"",
+      next:"Continue on Parolantie and to right into the yard",
+      papers:{HASA:3},
+      apts:[
+        { f:"8th floor", list:[["40",[]], ["39",[]], ["38",[]], ["37",[]], ["36",["HASA"]]] },
+        { f:"7th floor", list:[["35",[]], ["34",[]], ["33",[]], ["32",[]], ["31",[]]] },
+        { f:"6th floor", list:[["30",[]], ["29",[]], ["28",[]], ["27",[]], ["26",[]]] },
+        { f:"5th floor", list:[["25",[]], ["24",[]], ["23",[]], ["22",[]], ["21",["HASA"]]] },
+        { f:"4th floor", list:[["20",[]], ["19",[]], ["18",[]], ["17",[]], ["16",[]]] },
+        { f:"3rd floor", list:[["15",[]], ["14",[]], ["13",["HASA"]], ["12",[]], ["11",[]]] },
+        { f:"2nd floor", list:[["10",[]], ["9",[]], ["8",[]], ["7",[]], ["6",[]]] },
+        { f:"1st floor", list:[["5",[]], ["4",[]], ["3",[]], ["2",[]], ["1",[]]] }
+      ],
+      flag:"Building papers banner read 'HASA:3' which exactly matches the per-unit chips found here (units 36, 21, 13) — high confidence. Confirmed as the Page 2/6 top-of-page stop." },
+
+    { k:"j5",
+      street:"Parolantie",
+      nr:"16",
+      at:"",
+      next:"Continue on Parolantie and to right into the yard",
+      papers:{},
+      apts:[
+        { f:"3rd floor", list:[["15",[]], ["14",[]], ["13",[]], ["12",[]], ["11",[]]] },
+        { f:"2nd floor", list:[["10",[]], ["9",[]], ["8",[]], ["7",[]], ["6",[]]] },
+        { f:"1st floor", list:[["5",[]], ["4",[]], ["3",[]], ["2",[]], ["1",[]]] }
+      ],
+      flag:"This entrance's own papers banner number was never visible on screen (every photo of its header was cut off right at the icon, before the number rendered) — treated as blank/0 since no chip was seen on any of its 15 units, but the banner itself is UNCONFIRMED, unlike other stops where a blank chevron was clearly visible. Only 3 floors captured (15 units total); no 4th floor or higher was shown, and none appears to exist for this smaller entrance based on where the photos transition directly to the next building." },
+
+    { k:"j6",
+      street:"Parolantie",
+      nr:"18",
+      at:"",
+      next:"",
+      papers:{HASA:4},
+      apts:[
+        { f:"8th floor", list:[["47",["HASA"]], ["46",[]], ["45",["HASA"]], ["44",[]], ["43",[]], ["42",[]]] },
+        { f:"7th floor", list:[["41",[]], ["40",[]], ["39",[]], ["38",[]], ["37",[]], ["36",[]]] },
+        { f:"6th floor", list:[["35",[]], ["34",[]], ["33",[]], ["32",[]], ["31",[]], ["30",[]]] },
+        { f:"5th floor", list:[["29",[]], ["28",[]], ["27",[]], ["26",[]], ["25",[]], ["24",["HASA"]]] },
+        { f:"4th floor", list:[["23",[]], ["22",[]], ["21",[]], ["20",[]], ["19",[]], ["18",[]]] },
+        { f:"3rd floor", list:[["17",[]], ["16",[]], ["15",[]], ["14",[]], ["13",[]], ["12",[]]] },
+        { f:"2nd floor", list:[["11",[]], ["10",[]], ["9",[]], ["8",[]], ["7",[]], ["6",[]]] },
+        { f:"1st floor", list:[["5",["HASA"]], ["4",[]], ["3",[]], ["2",[]], ["1",[]]] }
+      ],
+      flag:"Confirmed as the Page 3/6 top-of-page stop. Building papers banner read 'HASA:5' but only 4 chips were found on doors (units 47, 45, 24, 5) — short by 1; no gap in floor coverage was identified for this building (all 8 floors, 47 units, were captured), so the missing chip is presumed to be a subtle photo/lighting miss rather than an uncaptured unit. No driving instruction was captured between this stop and the next (Parolantie 20, entrance A) — the building header for '20' appears immediately after unit 1 with no instruction text, suggesting these two entrances may be directly adjacent with no drive needed, but this is not confirmed." },
+
+    { k:"j7",
+      street:"Parolantie",
+      nr:"20 (entrance A / large)",
+      at:"Sento no mark little ring (door/lock note as shown on screen)",
+      next:"Continue on Parolantie towards the right",
+      papers:{HS:1, HASA:5},
+      apts:[
+        { f:"8th floor", list:[["40",["HASA"]], ["39",[]], ["38",[]], ["37",[]], ["36",["HASA"]]] },
+        { f:"7th floor", list:[["35",[]], ["34",[]], ["33",[]], ["32",[]], ["31",["HASA"]]] },
+        { f:"6th floor", list:[["30",[]], ["29",[]], ["28",[]], ["27",[]], ["26",[]]] },
+        { f:"5th floor", list:[["25",[]], ["24",[]], ["23",[]], ["22",[]], ["21",[]]] },
+        { f:"4th floor", list:[["20",[]], ["19",[]], ["18",["HS","HASA"]], ["17",[]], ["16",[]]] },
+        { f:"3rd floor", list:[["15",[]], ["14",[]], ["13",[]], ["12",[]], ["11",[]]] },
+        { f:"2nd floor", list:[["10",[]], ["9",[]], ["8",[]], ["7",["HASA"]], ["6",[]]] },
+        { f:"1st floor", list:[["5",[]], ["4",[]], ["3",[]], ["2",[]], ["1",[]]] }
+      ],
+      flag:"See GLOBAL FLAG 2 — this is one of TWO separate entrances both named 'Parolantie 20'. Building banner showed only 'HASA:7' (no HS value displayed at all despite unit 18 clearly carrying both an HS and a HASA chip). Per-door chips found: HASA on 40,36,31,7 plus the HS+HASA combo on 18 = HASA:5, HS:1 total — HASA is short 2 versus the banner's 7. The 6th floor's top unit ('30') was never directly captured in any photo (only 29,28,27,26 were visible) — included here as an inferred unit to keep the floor at 5 units like every other floor in this building; flagged as unconfirmed." },
+
+    { k:"j8",
+      street:"Parolantie",
+      nr:"20 (entrance B / small)",
+      at:"",
+      next:"",
+      papers:{HASA:1},
+      apts:[
+        { f:"(no floor label shown)", list:[["7",["HASA"]], ["6",[]]] },
+        { f:"1st floor", list:[["5",[]], ["1",[]], ["2",[]], ["3",[]], ["4",[]]] }
+      ],
+      flag:"See GLOBAL FLAG 2 — this is the SECOND, much smaller entrance also named 'Parolantie 20' (only 7 units total: 1-7), confirmed as the Page 4/6 top-of-page stop. Its own papers banner number was cut off in every photo (not captured); only the single HASA chip on unit 7 is confirmed. GLOBAL FLAG 8: the on-screen unit order under '1st floor' is genuinely '5, 1, 2, 3, 4' — not descending like every other building in this route. Transcribed verbatim rather than silently re-sorted. No driving instruction was captured between this stop and Parolantie 22 (header for 22 appears immediately after unit 4)." },
+
+    { k:"j9",
+      street:"Parolantie",
+      nr:"22",
+      at:"Deliver to mailbox on Brahenkatu 21 (shared community mailbox for this building, off-site)",
+      next:"",
+      papers:{HASA:1},
+      apts:[
+        { f:"Deliver to mailbox on Brahenkatu 21 (shared)", list:[["mailbox note (all 19 units, unassigned)",["HASA"]], ["19",[]], ["18",[]], ["17",[]], ["16",[]], ["15",[]], ["14",[]], ["13",[]], ["12",[]], ["11",[]], ["10",[]], ["9",[]], ["8",[]], ["7",[]], ["6",[]], ["5",[]], ["4",[]], ["3",[]], ["2",[]], ["1",[]]] }
+      ],
+      flag:"See GLOBAL FLAG 9 — the single HASA:1 chip was attached to the 'Deliver to mailbox on Brahenkatu 21' note itself (matching the banner exactly), not to any one of the 19 numbered units. Represented as a synthetic 'mailbox note' roster entry (not a real unit number) purely so the top-level papers total stays reconciled with the roster; do NOT read this as unit '19' or any other real address. No driving instruction was captured between this stop and Parolantie 24 — a real gap in photo coverage (see GLOBAL FLAG 6)." },
+
+    { k:"j10",
+      street:"Parolantie",
+      nr:"24",
+      at:"Abloy Easy (door/lock note as shown on screen)",
+      next:"",
+      papers:{HASA:4},
+      apts:[
+        { f:"4th floor", list:[["A23",[]], ["A22",[]], ["A21",["HASA"]], ["A20",["HASA"]], ["A19",[]], ["A18",[]], ["A17",["HASA"]]] },
+        { f:"3rd floor (partial — cut off after A13)", list:[["A16",[]], ["A15",[]], ["A14",["HASA"]], ["A13",[]]] }
+      ],
+      flag:"MAJOR GAP: only the 4th floor and part of the 3rd floor were captured before the photos jump straight to Page 5/6 (Parolantie 26). The rest of the 3rd floor plus the entire 2nd and 1st floors (presumably units A1-A12 or so) were NEVER photographed, and no driving instruction to the next stop was captured either. Building banner read 'HASA:5'; only 4 chips were found (A21, A20, A17, A14) in the portion that WAS captured — the missing 5th HASA chip is presumably on the uncaptured lower floors." },
+
+    { k:"j11",
+      street:"Parolantie",
+      nr:"26",
+      at:"Door code: 5926 / Iloq",
+      next:"",
+      papers:{},
+      apts:[
+        { f:"1st floor", list:[["A1",[]], ["A2",[]]] },
+        { f:"2nd floor", list:[["A3",[]], ["A4",[]]] },
+        { f:"3rd floor", list:[["A5",[]], ["A6",[]]] },
+        { f:"1st floor", list:[["B7",[]], ["B8",[]]] },
+        { f:"2nd floor", list:[["B9",[]], ["B10",[]]] },
+        { f:"3rd floor", list:[["B11",[]], ["B12",[]]] }
+      ],
+      flag:"Confirmed as the Page 5/6 top-of-page stop. Building banner read 'HASA:2' but NO chip was found anywhere on any of these 12 units (A1-A6, B7-B12) across two separate photos of this building — a real discrepancy, flagged rather than force-fitted (top-level papers left at {} to match the actual roster, per the doors-over-banner convention). No driving instruction was captured between this stop and Parolantie 28 — the two share the same door code, so they may be immediately adjacent stairwells of one building." },
+
+    { k:"j12",
+      street:"Parolantie",
+      nr:"28",
+      at:"Door code: 5926 / Iloq",
+      next:"Continue on Parolantie, turn right on Kaurialankatu, turn right immediately into the yard, nr 30 entrance through the backyard",
+      papers:{HASA:2},
+      apts:[
+        { f:"1st floor", list:[["C13",[]], ["C14",[]], ["C15",[]]] },
+        { f:"2nd floor", list:[["C16",[]], ["C17",["HASA"]], ["C18",[]]] },
+        { f:"3rd floor", list:[["C19",[]], ["C20",[]], ["C21",[]]] },
+        { f:"1st floor", list:[["D22",[]], ["D23",["HASA"]], ["D24",[]]] },
+        { f:"2nd floor", list:[["D25",[]], ["D26",[]], ["D27",[]]] },
+        { f:"3rd floor", list:[["D28",[]], ["D29",[]], ["D30",[]]] }
+      ],
+      flag:"Stairwell C's own sub-banner read 'HASA:1', exactly matching its single chip (C17) — high confidence. Stairwell D's own sub-banner was never captured on screen; only its single visible chip (D23) is counted. Top-level papers here = HASA:2 (C17+D23), the sum of both stairwells' confirmed chips. See GLOBAL FLAG 3 regarding uncertainty in exactly which page (5 or 6) this stop's tail end falls on." },
+
+    { k:"j13",
+      street:"Parolantie",
+      nr:"30",
+      at:"Sento green (door/lock note as shown on screen); entrance through the backyard",
+      next:"Return, continue on Parolantie, house immediately on the right",
+      papers:{},
+      apts:[
+        { f:"4th floor", list:[["25",[]], ["24",[]], ["23",[]], ["22",[]], ["21",[]], ["20",[]], ["19",[]], ["18",[]]] },
+        { f:"3rd floor", list:[["17",[]], ["16",[]], ["15",[]], ["14",[]], ["13",[]], ["12",[]], ["11",[]], ["10",[]]] },
+        { f:"2nd floor", list:[["9",[]], ["8",[]], ["7",[]], ["6",[]], ["5",[]], ["4",[]], ["3",[]], ["2",[]]] },
+        { f:"1st floor", list:[["1",[]]] }
+      ],
+      flag:"See GLOBAL FLAG 3 — per the on-screen 'Page 6/6 ▶' button at the end of this stop's listing, this building is PAGE 6 content (appearing before Parolantie 32 in reading order, even though Parolantie 32 owns page 6's top-of-page header). No HS/HASA chip was visible anywhere on any of its 25 units; the building's own papers banner chevron was visibly blank (confirmed zero, not just uncaptured)." },
+
+    { k:"j14",
+      street:"Parolantie",
+      nr:"32",
+      at:"",
+      next:"Continue on Parolantie, turn left on Maijantie and immediately to the left into the yard",
+      papers:{HASA:1},
+      apts:[
+        { f:"1st floor", list:[["A8",["HASA"]], ["A7",[]], ["A6",[]], ["A5",[]], ["A4",[]], ["A3",[]], ["A2",[]], ["A1",[]]] },
+        { f:"2nd floor", list:[["A9",[]], ["A10",[]], ["A11a",[]], ["A11b",[]], ["A12",[]], ["A13",[]], ["A14",[]], ["A15",[]], ["A16",[]], ["A17",[]]] }
+      ],
+      flag:"Confirmed as the Page 6/6 top-of-page stop. Building banner read 'HASA:1', matching the single chip found (A8) — high confidence. GLOBAL FLAG 10: units A1-A8 are all labelled '1st floor' and A9-A17 (including a split A11a/A11b) continue under only ONE more floor-header ('2nd floor') with no further floor changes shown — transcribed exactly as displayed rather than inventing additional floor labels." },
+
+    { k:"j15",
+      street:"Maijantie",
+      nr:"8",
+      tag:"LAST",
+      at:"Mailboxes in the entryway, iLOQ lock. The end.",
+      next:"",
+      papers:{},
+      apts:[
+        { f:"Mailboxes in the entryway", list:[["A1",[]], ["A2",[]], ["A3",[]], ["A4",[]], ["A5",[]], ["A6",[]], ["A7",[]], ["A8",[]], ["A9",[]], ["A10",[]], ["A11",[]], ["A12",[]], ["A13",[]], ["A14",[]], ["A15",[]], ["A16",[]], ["A17",[]], ["A18",[]], ["A19",[]], ["A20",[]], ["A21",[]], ["A22",[]], ["A23",[]], ["A24",[]], ["A25",[]], ["A26",[]], ["A27",[]], ["A28",[]], ["A29",[]], ["A30",[]], ["A31",[]], ["A32",[]], ["A33",[]], ["A34",[]], ["A35",[]], ["A36",[]], ["A37",[]], ["A38",[]], ["A39",[]]] }
+      ],
+      flag:"Confirmed LAST stop — an explicit 'The end.' marker (with red underline, then an orange divider) appears directly after unit A39 in the photos. This route IS confirmed complete, unlike 1096022. Building papers banner chevron was visibly blank (confirmed zero papers for this address, not just uncaptured) and no HS/HASA chip was seen on any of the 39 units." }
+  ]
     }
   ]
 };
@@ -3381,7 +3687,8 @@ const POSTCODE = {
   "Maijantie":          "13130",
   "Poltinahontie":      "13130",
   "Ravikatu":           "13130",
-  "Rinkelinkatu":       "13130"
+  "Rinkelinkatu":       "13130",
+  "Parolantie":         "13130"
 };
 
 /* A stop you type in yourself under Data will name a street that isn't in the
