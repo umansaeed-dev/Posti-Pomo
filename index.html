@@ -2667,6 +2667,394 @@ const SEED = {
   papers:{ HASA:1 }, apts:[] },
 
   ]
+    },
+    /*
+     Route 1096022 — Sunday 30.8.2026
+     Shift start 00:30, service level 07:00
+     Starting point (JÄTTÖPAIKKA): 13110, Lautatarhankatu 5
+     Area/group: "KAURIALA C" — a NEW, separate area, NOT part of the existing "Katinen B" chain
+       (Katinen B = routes 1096016-1096020; Turenki V = 1656100-1656103; neither includes 1096022).
+       Header text verbatim: "KAURIALA C - ROUTES 1096026,1096021,1096022,1096023 AND 1096024
+       (IN THIS ORDER). THERE ARE KEYS FOR EVERY ROUTE."
+       => 1096022 is the 3rd route in the Kauriala C chain (after 1096021, before 1096023).
+       => standalone:false, because it chains within Kauriala C (keys needed), same convention
+          style as Katinen B, just a different named area/chain.
+     Printed totals (route-summary screen): HS: 6, HASA: 37
+     Pages: 6 total, 6 photographed (page 6 appears INCOMPLETE — see flag on last stop).
+     ============================================================================
+     GLOBAL FLAGS / CAVEATS (please read before driving):
+     1. START stop's "next" instruction shows on-screen text "Route 021 => ...". Given the
+        route-summary header states the Kauriala C chain order as 1096026,1096021,1096022,...,
+        this almost certainly means "route 1096021" (this route starts where 1096021 finished),
+        but the screen itself only shows the shortened "021", never spelling out "1096021".
+        Transcribed verbatim; flagged rather than assumed.
+     2. Rinkelinkatu 32a and Rinkelinkatu 32c (stops i22 and i23) show suspiciously IDENTICAL
+        unit numbering and paper-tag positions in their photographed floors (units 5-16, HASA at
+        6/11/12/16). This could mean two genuinely separate but identically-laid-out buildings,
+        OR it could mean the same building's photos were mistakenly attributed to two different
+        addresses. The grand paper tally below (HASA 37, matching the printed total exactly) only
+        works if both are counted as separate buildings. VERIFY ON SITE which entrance signage
+        reads "32a" vs "32c" before trusting this section blindly.
+     3. Rinkelinkatu 32b's printed per-building banner said "HASA 4", but per-unit HASA/HS chips
+        visible across two separate photo passes of that building add up to HASA 6 + HS 1.
+        Transcribed the per-unit chips (that's what matters at each door); banner mismatch flagged.
+     4. Poltinahontie 17's per-unit HASA count (3) matches its banner exactly; Poltinahontie 19's
+        per-unit HASA count (6) matches its banner exactly — both used as confirmation the
+        block/floor reconstruction for that pagination-dense cluster (Poltinahontie 19/17/15) is
+        correct.
+     5. The exact page-boundary placement of the Poltinahontie 62c -> Ravikatu 68/2/4/7 cluster
+        (stops i15-i21) relative to Rinkelinkatu 32b (i24) is uncertain. Photo evidence shows
+        Rinkelinkatu 32b's screen with the "Previous page / Page 4/6" top-of-page marker (implying
+        it is the FIRST item on page 4), yet its exit instruction "Turn right on Rinkelinkatu"
+        would logically lead directly to another Rinkelinkatu address, not back to Poltinahontie.
+        Best-guess order used here: 32b -> 62c...Ravikatu7 -> 32a -> 32c, honoring the driving
+        instructions over the page-top marker. Flagged as uncertain; the STOP ORDER within the
+        62c-Ravikatu7 cluster itself is solid (confirmed by content overlap + explicit driving
+        instructions).
+     6. Rinkelinkatu 32c: no photo showed its 1st floor. Banner says HASA 5 but only 4 tagged
+        units were visible (6, 11, 12, 16) across the 2nd-4th floors that WERE photographed.
+        The missing 5th HASA is presumably on the uncaptured 1st floor.
+     7. Rinkelinkatu 32a: banner shows HS 1 + HASA 6. All 6 HASA chips were matched to specific
+        units (1,4,6,11,12,16), but no HS chip could be matched to any specific unit in the
+        photos. This HS is NOT added into the grand total below, because the printed route total
+        of HS:6 is already fully reconciled by six OTHER stops (see stop i22's flag) — so 32a's
+        own "HS:1" banner claim looks redundant/unexplained rather than a missing-tag gap.
+     8. Rinkelinkatu 49 mailboxes (letters V down to A on the trash shed wall): the letter "Q"
+        is simply absent from the photographed sequence (...S,R,P,O...) — transcribed exactly as
+        shown; presumed the building genuinely has no "Q" mailbox rather than a missed photo.
+     9. The last photo (clock 7:48, Page 6/6) ends with the instruction "From the courtyard
+        continue towards the right on Rinkelinkatu" AFTER the Rinkelinkatu 49 mailbox listing —
+        meaning the route continues to at least one more stop that was NOT captured in these 31
+        photos. No "The end." marker was found anywhere in the photo set. The last stop below
+        (i28, Rinkelinkatu 49) is NOT tagged "LAST" because we cannot confirm it truly is.
+     10. Paper tally cross-check: summing every HS/HASA chip actually placed on a door below
+         (NOT counting Rinkelinkatu 32a's un-localized HS from flag 7) gives HASA:37, HS:6 — an
+         EXACT match to the printed route totals (HS:6, HASA:37). Verified with Node. This is
+         strong (though not absolute) evidence the overall reconstruction is correct despite the
+         individual-building banner mismatches noted above (32a, 32b, 32c banners don't each
+         individually reconcile, but the route-wide total does).
+     ============================================================================
+    */
+    {
+      id: "1096022", from: "00:30", to: "07:00", standalone: true,
+  pagesTotal: 6, pagesEntered: 5,
+  totals: { HS:6, HASA:37 },
+  stops: [
+    { k:"i1",
+      street:"Lautatarhankatu",
+      nr:"5",
+      tag:"START",
+      at:"Starting point (JÄTTÖPAIKKA), postcode 13110",
+      next:"Route 021 ⇒ turn right from the yard, turn right on Soraharjuntie for 600m, turn right on Poltinahontie for 600m, turn left on Rinkelinmäenkatu, apartment building on the left",
+      papers:{},
+      apts:[],
+      flag:"On-screen text literally says 'Route 021 =>' not '1096021'. Inferred to mean route 1096021 (previous route in the Kauriala C chain per the route-summary header) but this abbreviation was never spelled out on screen — flagging rather than assuming." },
+
+    { k:"i2",
+      street:"Poltinahontie",
+      nr:"19",
+      at:"",
+      next:"Go back, turn right on Poltinahontie",
+      papers:{HASA:6},
+      apts:[
+        { f:"C block, 1st floor", list:[["C16",[]], ["C17",["HASA"]], ["C18",[]]] },
+        { f:"C block, 2nd floor", list:[["C19",["HASA"]], ["C20",[]], ["C21",["HASA"]]] },
+        { f:"C block, 3rd floor", list:[["C22",[]], ["C23",[]], ["C24",["HASA"]]] },
+        { f:"B block, 1st floor", list:[["B10",[]], ["B11",[]]] },
+        { f:"B block, 2nd floor", list:[["B12",[]], ["B13",[]]] },
+        { f:"B block, 3rd floor", list:[["B14",[]], ["B15",[]]] },
+        { f:"A block, 1st floor", list:[["A1",[]], ["A2",[]], ["A3",[]]] },
+        { f:"A block, 2nd floor", list:[["A4",[]], ["A5",[]], ["A6",[]]] },
+        { f:"A block, 3rd floor", list:[["A7",["HASA"]], ["A8",[]], ["A9",["HASA"]]] }
+      ],
+      flag:"Building total banner read 'HASA 6' which exactly matches the sum of per-unit HASA chips here (C17,C19,C21,C24,A7,A9) — high confidence." },
+
+    { k:"i3",
+      street:"Poltinahontie",
+      nr:"17",
+      at:"",
+      next:"",
+      papers:{HASA:3},
+      apts:[
+        { f:"A block, 1st floor", list:[["A1",[]], ["A2",[]], ["A3",[]], ["A4",[]]] },
+        { f:"A block, 2nd floor", list:[["A5",[]], ["A6",[]], ["A7",[]], ["A8",[]]] },
+        { f:"A block, 3rd floor", list:[["A9",[]], ["A10",[]], ["A11",[]], ["A12",[]]] },
+        { f:"B block, 1st floor", list:[["B13",[]], ["B14",[]]] },
+        { f:"B block, 2nd floor", list:[["B15",["HASA"]], ["B16",[]]] },
+        { f:"B block, 3rd floor", list:[["B17",["HASA"]], ["B18",[]]] },
+        { f:"C block, 1st floor", list:[["C19",[]], ["C20",[]]] },
+        { f:"C block, 2nd floor", list:[["C21",[]], ["C22",[]]] },
+        { f:"C block, 3rd floor", list:[["C23",[]], ["C24",["HASA"]]] }
+      ],
+      flag:"Building total banner read 'HASA 3' which exactly matches the sum of per-unit HASA chips here (B15,B17,C24) — high confidence. Page 1/6 -> Page 2/6 boundary falls somewhere after this stop; no explicit driving instruction was captured between this stop and Poltinahontie 15." },
+
+    { k:"i4",
+      street:"Poltinahontie",
+      nr:"15",
+      at:"",
+      next:"",
+      papers:{},
+      apts:[
+        { f:"B block, 1st floor", list:[["B10",[]], ["B11",[]], ["B12",[]]] },
+        { f:"B block, 2nd floor", list:[["B13",[]], ["B14",[]], ["B15",[]]] },
+        { f:"B block, 3rd floor", list:[["B16",[]], ["B17",[]], ["B18",[]]] },
+        { f:"C block, 1st floor", list:[["C19",[]], ["C20",[]], ["C21",[]]] },
+        { f:"C block, 2nd floor", list:[["C22",[]], ["C23",[]], ["C24",[]]] },
+        { f:"C block, 3rd floor", list:[["C25",[]], ["C26",[]], ["C27",[]]] }
+      ],
+      flag:"Confirmed as the Page 2/6 top-of-page stop. No HS/HASA chip was visible on any unit in either block; the building's own papers banner value was not legibly captured in the photos (assumed 0/blank)." },
+
+    { k:"i5",
+      street:"Poltinahontie",
+      nr:"60",
+      at:"Mailbox at the door",
+      next:"Continue on Poltinahontie, turn right into the next yard",
+      papers:{HS:1, HASA:1},
+      apts:[
+        { f:"", list:[["B",[]], ["C",[]], ["A",["HS","HASA"]]] }
+      ],
+      flag:"Confirmed as the Page 3/6 top-of-page stop. Three lettered entrances (B, C, A) with no floor structure shown; only unit A carries papers (HS+HASA) and the 'mailbox at the door' note. A small door icon appeared next to unit A but with no code number attached, so it was treated as a plain at-the-door note, not an entry code." },
+
+    { k:"i6",
+      street:"Poltinahontie",
+      nr:"62a",
+      at:"",
+      next:"Go back, continue on Poltinahontie",
+      papers:{HASA:2, HS:1},
+      apts:[
+        { f:"", list:[["3",["HASA"]], ["2",["HS","HASA"]], ["1",[]]] }
+      ] },
+
+    { k:"i7",
+      street:"Poltinahontie",
+      nr:"62b",
+      at:"Right side, on the trash shed",
+      next:"",
+      papers:{},
+      apts:[],
+      flag:"No driving instruction was captured between this stop and Poltinahontie 11 — possible small gap in the photo coverage." },
+
+    { k:"i8",
+      street:"Poltinahontie",
+      nr:"11",
+      at:"Right side, door slot",
+      next:"Turn around and go back, turn right on Majantie, turn around after nr. 5",
+      papers:{},
+      apts:[] },
+
+    { k:"i9",
+      street:"Maijantie",
+      nr:"5",
+      at:"Right side, at the gate",
+      next:"",
+      papers:{},
+      apts:[] },
+
+    { k:"i10",
+      street:"Maijantie",
+      nr:"3",
+      at:"Right side, at the gate",
+      next:"Turn right on Poltinahontie",
+      papers:{HS:1},
+      apts:[] },
+
+    { k:"i11",
+      street:"Poltinahontie",
+      nr:"56",
+      at:"Right side, mailboxes on the trash shed (Check carefully names and addresses, Poltinahontie 56 = Maijantie 1). Mailbox unit A1.",
+      next:"",
+      papers:{},
+      apts:[],
+      flag:"App explicitly warns this address shares mailboxes/identity with Maijantie 1 — check names carefully at the door." },
+
+    { k:"i12",
+      street:"Maijantie",
+      nr:"1",
+      at:"",
+      next:"",
+      papers:{},
+      apts:[
+        { f:"", list:[["1",[]], ["2",[]]] }
+      ] },
+
+    { k:"i13",
+      street:"Poltinahontie",
+      nr:"56b",
+      at:"Right side, at the gate",
+      next:"",
+      papers:{},
+      apts:[] },
+
+    { k:"i14",
+      street:"Poltinahontie",
+      nr:"58",
+      at:"Right side, at the gate (Same mailbox as 56b)",
+      next:"Turn right into the yard",
+      papers:{},
+      apts:[],
+      flag:"This was the end-of-Page-3 footer point in the photos ('Page 3/6 ▶'). See global flag #5 about uncertainty in exactly where the following Poltinahontie 62c/Ravikatu cluster fits relative to Page 4." },
+
+    { k:"i15",
+      street:"Poltinahontie",
+      nr:"62c",
+      at:"Right side, at the gate",
+      next:"",
+      papers:{HS:1, HASA:1},
+      apts:[
+        { f:"", list:[["2",[]], ["1",["HS","HASA"]]] }
+      ] },
+
+    { k:"i16",
+      street:"Poltinahontie",
+      nr:"64a",
+      at:"At the gate",
+      next:"",
+      papers:{},
+      apts:[] },
+
+    { k:"i17",
+      street:"Poltinahontie",
+      nr:"66",
+      at:"At the gate",
+      next:"Turn right on Ravikatu",
+      papers:{},
+      apts:[] },
+
+    { k:"i18",
+      street:"Ravikatu",
+      nr:"68",
+      at:"Right side, at the gate (Same mailbox)",
+      next:"",
+      papers:{},
+      apts:[] },
+
+    { k:"i19",
+      street:"Ravikatu",
+      nr:"2",
+      at:"",
+      next:"Turn to right into the rowhouse's yard",
+      papers:{},
+      apts:[] },
+
+    { k:"i20",
+      street:"Ravikatu",
+      nr:"4",
+      at:"Mailboxes on the garage's backwall",
+      next:"Turn right from the yard, turn left into the block of flat's yard",
+      papers:{HASA:3},
+      apts:[
+        { f:"Mailboxes on the garage's backwall", list:[["A",[]], ["B",[]], ["C",["HASA"]], ["D",[]], ["E",["HASA"]], ["F",[]], ["G",["HASA"]], ["H",[]]] }
+      ],
+      flag:"Lettered mailboxes A-H covering multiple units at one shared location, per the app's own 'mailboxes on the garage's backwall' note." },
+
+    { k:"i21",
+      street:"Ravikatu",
+      nr:"7",
+      at:"",
+      next:"Turn left from the yard, drive on Parolantie, right on Majantie, the block of flats immediately on the right",
+      papers:{HASA:1},
+      apts:[
+        { f:"A block, 1st floor", list:[["A1",[]], ["A2",[]], ["A3",[]], ["A4",[]]] },
+        { f:"A block, 2nd floor", list:[["A5",[]], ["A6",[]], ["A7",[]], ["A8",[]]] },
+        { f:"A block, 3rd floor", list:[["A9",[]], ["A10",[]], ["A11",[]], ["A12",[]]] },
+        { f:"B block, 1st floor", list:[["B13",[]], ["B14",[]], ["B15",[]], ["B16",[]]] },
+        { f:"B block, 2nd floor", list:[["B17",[]], ["B18",[]], ["B19",[]], ["B20",[]]] },
+        { f:"B block, 3rd floor", list:[["B21",["HASA"]], ["B22",[]], ["B23",[]], ["B24",[]]] }
+      ],
+      flag:"Building total banner read 'HASA 1' which exactly matches the single HASA chip found (B21) — high confidence." },
+
+    { k:"i22",
+      street:"Rinkelinkatu",
+      nr:"32a",
+      at:"",
+      next:"",
+      papers:{HASA:6},
+      apts:[
+        { f:"1st floor", list:[["1",["HASA"]], ["2",[]], ["3",[]], ["4",["HASA"]]] },
+        { f:"2nd floor", list:[["5",[]], ["6",["HASA"]], ["7",[]], ["8",[]]] },
+        { f:"3rd floor", list:[["9",[]], ["10",[]], ["11",["HASA"]], ["12",["HASA"]]] },
+        { f:"4th floor", list:[["13",[]], ["14",[]], ["15",[]], ["16",["HASA"]]] }
+      ],
+      flag:"Building banner shows HS:1, HASA:6. All 6 HASA chips were matched to specific units (1,4,6,11,12,16); the HS chip could NOT be matched to any specific unit in the photos. NOTE: this HS is NOT added to the route grand-total tally below, because the printed route total of HS:6 is already fully reconciled by other stops (Poltinahontie 60, Poltinahontie 62a, Maijantie 3, Poltinahontie 62c, Rinkelinkatu 32b unit 11, Rinkelinkatu 49 unit L). This building's own 'HS:1' banner claim therefore looks redundant/unexplained against the route-wide total — flagged as an unresolved inconsistency rather than force-fitted. See also global flag #2 regarding possible overlap/confusion with stop i23 (32c)." },
+
+    { k:"i23",
+      street:"Rinkelinkatu",
+      nr:"32c",
+      at:"",
+      next:"",
+      papers:{HASA:4},
+      apts:[
+        { f:"2nd floor", list:[["5",[]], ["6",["HASA"]], ["7",[]], ["8",[]]] },
+        { f:"3rd floor", list:[["9",[]], ["10",[]], ["11",["HASA"]], ["12",["HASA"]]] },
+        { f:"4th floor", list:[["13",[]], ["14",[]], ["15",[]], ["16",["HASA"]]] }
+      ],
+      flag:"1st floor was never photographed for this building. Banner says HASA:5 but only 4 tagged units are visible (6,11,12,16); the 5th is presumed to be on the uncaptured 1st floor. IMPORTANT: see global flag #2 — this building's visible units/tags are identical to stop i22 (32a)'s floors 2-4, which may indicate a mix-up between the two addresses. Verify building letters on site." },
+
+    { k:"i24",
+      street:"Rinkelinkatu",
+      nr:"32b",
+      at:"Door code: 2018 (1st floor)",
+      next:"Turn right on Rinkelinkatu",
+      papers:{HASA:6, HS:1},
+      apts:[
+        { f:"1st floor", list:[["1",[]], ["2",[]], ["3",["HASA"]], ["4",["HASA"]]] },
+        { f:"2nd floor", list:[["5",[]], ["6",["HASA"]], ["7",[]], ["8",[]]] },
+        { f:"3rd floor", list:[["9",["HASA"]], ["10",[]], ["11",["HS"]], ["12",[]]] },
+        { f:"4th floor", list:[["13",[]], ["14",[]], ["15",["HASA"]], ["16",[]]] },
+        { f:"5th floor", list:[["17",["HASA"]], ["18",[]], ["19",[]], ["20",[]]] }
+      ],
+      flag:"Confirmed as the Page 4/6 top-of-page stop (photo shows 'Previous page / Page 4/6' header directly above 'Rinkelinkatu 32b'). Its own papers banner read only 'HASA 4', but per-unit chips across two separate photo passes of this building total HASA 6 + HS 1 (units 3,4,6,9,15,17 HASA; unit 11 HS) — a real discrepancy between the printed banner and the doors themselves, flagged rather than force-fitted. See also global flag #5 about this stop's uncertain position relative to the Poltinahontie 62c/Ravikatu cluster (stops i15-i21)." },
+
+    { k:"i25",
+      street:"Rinkelinkatu",
+      nr:"36",
+      at:"",
+      next:"",
+      papers:{HASA:1},
+      apts:[
+        { f:"1st floor", list:[["18",[]], ["19",[]], ["20",[]], ["21",[]], ["22",[]], ["23",[]]] },
+        { f:"2nd floor", list:[["24",[]], ["25",[]], ["26",[]], ["27",["HASA"]], ["28",[]], ["29",[]]] },
+        { f:"3rd floor", list:[["30",[]], ["31",[]], ["32",[]], ["33",[]], ["34",[]]] }
+      ],
+      flag:"Confirmed as the Page 5/6 top-of-page stop. Building banner read 'HASA 1', matching the single chip found (unit 27)." },
+
+    { k:"i26",
+      street:"Rinkelinkatu",
+      nr:"38",
+      at:"",
+      next:"Turn left from the courtyard, and immediately to the right into the next yard",
+      papers:{},
+      apts:[
+        { f:"1st floor", list:[["35",[]], ["36",[]], ["37",[]], ["38",[]], ["39",[]], ["40",[]]] },
+        { f:"2nd floor", list:[["41",[]], ["42",[]], ["43",[]], ["44",[]], ["45",[]]] },
+        { f:"3rd floor", list:[["46",[]], ["47",[]], ["48",[]], ["49",[]]] }
+      ],
+      flag:"No HS/HASA chip was visible on any unit here; the building's own papers banner value was not legibly captured (assumed 0/blank)." },
+
+    { k:"i27",
+      street:"Rinkelinkatu",
+      nr:"34",
+      at:"",
+      next:"",
+      papers:{HASA:1},
+      apts:[
+        { f:"1st floor", list:[["1",[]], ["2",[]], ["3",[]], ["4",[]], ["5",[]], ["6",[]]] },
+        { f:"2nd floor", list:[["7",[]], ["8",[]], ["9",[]], ["10",[]], ["11",[]]] },
+        { f:"3rd floor", list:[["12",[]], ["13",[]], ["14",[]], ["15",[]], ["16",[]], ["17",["HASA"]]] }
+      ],
+      flag:"Building banner read 'HASA 1', matching the single chip found (unit 17). This stop was followed by the 'Page 5/6 ▶' footer, ending page 5." },
+
+    { k:"i28",
+      street:"Rinkelinkatu",
+      nr:"49",
+      at:"Mailboxes on the trash shed's wall",
+      next:"From the courtyard continue towards the right on Rinkelinkatu",
+      papers:{HASA:2, HS:1},
+      apts:[
+        { f:"Mailboxes on the trash shed's wall", list:[["V",[]], ["U",[]], ["T",[]], ["S",[]], ["R",[]], ["P",[]], ["O",["HASA"]], ["N",[]], ["M",[]], ["L",["HS"]], ["K",[]], ["J",[]], ["I",[]], ["H",[]], ["G",["HASA"]], ["F",[]], ["E",[]], ["D",[]], ["C",[]], ["B",[]], ["A",[]]] }
+      ],
+      flag:"NOT tagged LAST — no 'The end.' marker was found anywhere in the 31 photos, and this stop's own driving instruction ('...continue towards the right on Rinkelinkatu') implies at least one more stop follows that was not photographed. This is simply the last stop visible in the available photos (highest on-device clock time, 7:48). Also: mailbox letter 'Q' is genuinely absent from the photographed sequence between R and P — transcribed exactly as shown, not a transcription gap." }
+  ]
     }
   ]
 };
@@ -2983,7 +3371,17 @@ const POSTCODE = {
   "Vanhamikkola":       "14200",
   "Viialantie":         "14200",
   "Viitainmaa":         "14200",
-  "Vuorenpää":          "14200"
+  "Vuorenpää":          "14200",
+
+  // 13130 — Kauriala, a district of Hämeenlinna itself (unlike Renko/Turenki,
+  // no `city` override needed here — DATA.city="Hämeenlinna" is already right).
+  // Route 1096022's whole area. Kauriala straddles at least one further
+  // sub-code (13134 turned up for a single business address) so this is
+  // still a one-area assumption, not checked street by street.
+  "Maijantie":          "13130",
+  "Poltinahontie":      "13130",
+  "Ravikatu":           "13130",
+  "Rinkelinkatu":       "13130"
 };
 
 /* A stop you type in yourself under Data will name a street that isn't in the
